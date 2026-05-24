@@ -1,0 +1,14 @@
+{
+  "script": {
+    "config": {
+      "environment": "prod"
+    }
+  },
+  "engines": {
+    "flink": {
+      "config": {
+        "table.exec.source.idle-timeout": "1 s"
+      }
+    }
+  }
+}

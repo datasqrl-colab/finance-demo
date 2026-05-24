@@ -1,0 +1,22 @@
+{
+  "version": "1",
+  "enabled-engines": ["flink", "iceberg", "duckdb", "vertx"],
+  "script": {
+    "main": "customer_enriched_pipeline.sqrl"
+  },
+  "engines": {
+    "flink": {
+      "config": {
+        "execution.runtime-mode": "STREAMING"
+      }
+    }
+  },
+  "compiler": {
+    "predicate-pushdown-rules": "LIMITED_RULES",
+    "api": {
+      "protocols": ["GRAPHQL", "REST", "MCP"],
+      "endpoints": "FULL",
+      "default-limit": 20
+    }
+  }
+}

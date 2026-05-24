@@ -1,0 +1,85 @@
+{
+  "data" : {
+    "CustomerHouseholdTest" : [ {
+      "household_id" : "CUST-001",
+      "customer_id" : "CUST-001",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 2,
+      "household_address" : "123 Oak Street",
+      "household_city" : "Springfield",
+      "match_method" : "RELATIONSHIP",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-001",
+      "customer_id" : "CUST-002",
+      "household_role" : "SPOUSE",
+      "is_primary" : false,
+      "household_size" : 2,
+      "household_address" : "123 Oak Street",
+      "household_city" : "Springfield",
+      "match_method" : "RELATIONSHIP",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-003",
+      "customer_id" : "CUST-003",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "789 Pine Road",
+      "household_city" : "Evanston",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-004",
+      "customer_id" : "CUST-004",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "321 Elm Street",
+      "household_city" : "Austin",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-005",
+      "customer_id" : "CUST-005",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "555 Cedar Lane",
+      "household_city" : "Denver",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-006",
+      "customer_id" : "CUST-006",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "888 Tech Boulevard",
+      "household_city" : "San Francisco",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-007",
+      "customer_id" : "CUST-007",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "1000 Business Park Drive",
+      "household_city" : "Dallas",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-008",
+      "customer_id" : "CUST-008",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "2500 Innovation Way",
+      "household_city" : "Seattle",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    } ]
+  }
+}

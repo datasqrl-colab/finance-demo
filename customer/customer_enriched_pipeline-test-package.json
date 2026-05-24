@@ -1,0 +1,20 @@
+{
+  "script": {
+    "config": {
+      "environment": "test"
+    }
+  },
+  "engines": {
+    "flink": {
+      "config": {
+        "table.exec.source.idle-timeout": "1 s"
+      }
+    }
+  },
+  "test-runner": {
+    "delay-sec": -1,
+    "required-checkpoints": 1,
+    "snapshot-folder": "snapshots/customer_enriched_pipeline/",
+    "test-folder": "customer_enriched_pipeline-api/tests"
+  }
+}
