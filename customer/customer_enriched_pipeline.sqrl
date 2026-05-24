@@ -247,14 +247,14 @@ EXPORT Customer_Household TO sink.Customer_Household_sink;
 DQ_Address_Window_Issues := SELECT
   customer_id, address_type, effective_from, effective_to, source_updated_at
 FROM cs.Customer_Address
-WHERE effective_to IS NOT NULL AND effective_from > effective_to;
+WHERE effective_to IS NOT NULL AND effective_from > effective_to ORDER BY c.source_updated_at DESC;
 
 /** DQ: Active customers without a current AML risk rating — compliance-sensitive.
     Any row here requires immediate remediation. */
 DQ_Unrated_Active_Customers := SELECT c.customer_id, c.customer_status, c.source_updated_at
 FROM _Customer c
 LEFT JOIN _CustomerRiskRating r ON c.customer_id = r.customer_id
-WHERE c.customer_status = 'ACTIVE' AND r.customer_id IS NULL;
+WHERE c.customer_status = 'ACTIVE' AND r.customer_id IS NULL ORDER BY c.source_updated_at DESC;
 
 -- ============================================================
 -- TEST QUERIES
