@@ -1,0 +1,11 @@
+query GetCustomerPaymentHistory {
+  ConsolidatedLoanPayments(customer_id: "CUST-001", limit: 20) {
+    payment_id
+    instrument_type
+    instrument_id
+    payment_amount_cents
+    payment_type
+    payment_status
+    payment_date
+  }
+}

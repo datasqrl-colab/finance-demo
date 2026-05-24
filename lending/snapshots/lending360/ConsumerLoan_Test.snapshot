@@ -1,0 +1,15 @@
+{
+  "data" : {
+    "ConsumerLoan_Test" : [ {
+      "loan_id" : "PL-001",
+      "loan_number" : "PL-2022-78456",
+      "customer_id" : "CUST-001",
+      "loan_type" : "PERSONAL",
+      "loan_purpose" : "HOME_IMPROVEMENT",
+      "current_balance_cents" : 1875000,
+      "interest_rate" : 0.0899,
+      "monthly_payment_cents" : 79425,
+      "next_payment_due_date" : "2024-02-22"
+    } ]
+  }
+}

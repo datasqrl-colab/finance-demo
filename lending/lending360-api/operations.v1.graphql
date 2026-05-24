@@ -1,0 +1,133 @@
+# Retrieve a customer's full lending overview including all active mortgages,
+# credit cards, and consumer loans in a single call
+query GetCustomerLendingOverview($customer_id: String) @api(mcp: TOOL, rest: GET, uri: "/customer/{customer_id}/lending") {
+  Customer(customer_id: $customer_id) {
+    customer_id
+    first_name
+    last_name
+    customer_type
+    customer_status
+    relationship_start_date
+    mortgages {
+      loan_id
+      loan_number
+      loan_program
+      loan_purpose
+      interest_rate
+      rate_type
+      current_principal_cents
+      total_monthly_payment_cents
+      next_payment_due_date
+      maturity_date
+    }
+    credit_cards {
+      credit_card_account_id
+      account_number
+      product_name
+      credit_limit_cents
+      current_balance_cents
+      available_credit_cents
+      minimum_payment_due_cents
+      payment_due_date
+      purchase_apr
+      rewards_program
+      rewards_balance
+    }
+    consumer_loans {
+      loan_id
+      loan_number
+      loan_type
+      loan_purpose
+      original_amount_cents
+      current_balance_cents
+      interest_rate
+      monthly_payment_cents
+      next_payment_due_date
+      maturity_date
+    }
+  }
+}
+
+# Retrieve all payment activity across a customer's lending instruments
+query GetCustomerPaymentHistory($customer_id: String!, $limit: Int = 50) @api(mcp: TOOL, rest: GET, uri: "/customer/{customer_id}/payments") {
+  ConsolidatedLoanPayments(customer_id: $customer_id, limit: $limit) {
+    payment_id
+    instrument_type
+    instrument_id
+    payment_amount_cents
+    payment_type
+    payment_status
+    payment_date
+    principal_cents
+    interest_cents
+  }
+}
+
+# Retrieve details for a specific mortgage loan
+query GetMortgage($loan_id: String, $customer_id: String) @api(mcp: TOOL, rest: GET, uri: "/mortgage/{loan_id}") {
+  Mortgage(loan_id: $loan_id, customer_id: $customer_id) {
+    loan_id
+    loan_number
+    customer_id
+    loan_status
+    loan_program
+    lien_position
+    loan_purpose
+    occupancy_type
+    rate_type
+    interest_rate
+    original_principal_cents
+    current_principal_cents
+    original_term_months
+    remaining_term_months
+    monthly_pi_payment_cents
+    total_monthly_payment_cents
+    funding_date
+    first_payment_date
+    maturity_date
+    next_payment_due_date
+  }
+}
+
+# Retrieve details for a specific credit card account
+query GetCreditCard($credit_card_account_id: String, $customer_id: String) @api(mcp: TOOL, rest: GET, uri: "/credit-card/{credit_card_account_id}") {
+  CreditCard(credit_card_account_id: $credit_card_account_id, customer_id: $customer_id) {
+    credit_card_account_id
+    account_number
+    customer_id
+    product_name
+    account_status
+    credit_limit_cents
+    available_credit_cents
+    current_balance_cents
+    minimum_payment_due_cents
+    payment_due_date
+    purchase_apr
+    opened_date
+    autopay_enrolled
+    rewards_program
+    rewards_balance
+  }
+}
+
+# Retrieve details for a specific consumer loan (personal or auto)
+query GetConsumerLoan($loan_id: String, $customer_id: String) @api(mcp: TOOL, rest: GET, uri: "/consumer-loan/{loan_id}") {
+  ConsumerLoan(loan_id: $loan_id, customer_id: $customer_id) {
+    loan_id
+    loan_number
+    customer_id
+    loan_type
+    loan_purpose
+    original_amount_cents
+    current_balance_cents
+    interest_rate
+    rate_type
+    monthly_payment_cents
+    original_term_months
+    remaining_term_months
+    funding_date
+    maturity_date
+    next_payment_due_date
+    autopay_enrolled
+  }
+}

@@ -1,0 +1,31 @@
+query GetCustomerLendingOverview {
+  Customer(customer_id: "CUST-001") {
+    customer_id
+    first_name
+    last_name
+    customer_type
+    customer_status
+    mortgages {
+      loan_id
+      loan_number
+      loan_program
+      interest_rate
+      current_principal_cents
+      total_monthly_payment_cents
+    }
+    credit_cards {
+      credit_card_account_id
+      product_name
+      current_balance_cents
+      credit_limit_cents
+      purchase_apr
+    }
+    consumer_loans {
+      loan_id
+      loan_type
+      loan_purpose
+      current_balance_cents
+      monthly_payment_cents
+    }
+  }
+}

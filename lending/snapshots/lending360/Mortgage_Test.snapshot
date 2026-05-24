@@ -1,0 +1,15 @@
+{
+  "data" : {
+    "Mortgage_Test" : [ {
+      "loan_id" : "ML-001",
+      "loan_number" : "MTG-2020-123456",
+      "customer_id" : "CUST-001",
+      "loan_status" : "ACTIVE",
+      "loan_program" : "CONVENTIONAL",
+      "interest_rate" : 0.0375,
+      "current_principal_cents" : 29850000,
+      "total_monthly_payment_cents" : 193128,
+      "next_payment_due_date" : "2024-02-01"
+    } ]
+  }
+}

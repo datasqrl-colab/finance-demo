@@ -1,0 +1,50 @@
+{
+  "data" : {
+    "ConsolidatedLoanPayments_Test" : [ {
+      "payment_id" : "CPMT-001",
+      "instrument_type" : "CREDIT_CARD",
+      "instrument_id" : "CCA-001",
+      "customer_id" : "CUST-001",
+      "payment_amount_cents" : 320000,
+      "payment_type" : "AUTOPAY",
+      "payment_status" : "POSTED",
+      "payment_date" : "2024-01-14"
+    }, {
+      "payment_id" : "LPMT-001",
+      "instrument_type" : "PERSONAL_LOAN",
+      "instrument_id" : "PL-001",
+      "customer_id" : "CUST-001",
+      "payment_amount_cents" : 79425,
+      "payment_type" : "REGULAR",
+      "payment_status" : "APPLIED",
+      "payment_date" : "2024-01-20"
+    }, {
+      "payment_id" : "LPMT-002",
+      "instrument_type" : "PERSONAL_LOAN",
+      "instrument_id" : "PL-001",
+      "customer_id" : "CUST-001",
+      "payment_amount_cents" : 79425,
+      "payment_type" : "REGULAR",
+      "payment_status" : "APPLIED",
+      "payment_date" : "2023-12-20"
+    }, {
+      "payment_id" : "MPMT-001",
+      "instrument_type" : "MORTGAGE",
+      "instrument_id" : "ML-001",
+      "customer_id" : "CUST-001",
+      "payment_amount_cents" : 193128,
+      "payment_type" : "REGULAR",
+      "payment_status" : "APPLIED",
+      "payment_date" : "2023-12-28"
+    }, {
+      "payment_id" : "MPMT-002",
+      "instrument_type" : "MORTGAGE",
+      "instrument_id" : "ML-001",
+      "customer_id" : "CUST-001",
+      "payment_amount_cents" : 193128,
+      "payment_type" : "REGULAR",
+      "payment_status" : "APPLIED",
+      "payment_date" : "2023-11-29"
+    } ]
+  }
+}

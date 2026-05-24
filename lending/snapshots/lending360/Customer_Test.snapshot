@@ -1,0 +1,13 @@
+{
+  "data" : {
+    "Customer_Test" : [ {
+      "customer_id" : "CUST-001",
+      "first_name" : "John",
+      "last_name" : "Smith",
+      "customer_type" : "INDIVIDUAL",
+      "customer_status" : "ACTIVE",
+      "relationship_start_date" : "2018-06-01",
+      "preferred_language" : "en"
+    } ]
+  }
+}

@@ -1,0 +1,123 @@
+type Customer {
+  customer_id: String!
+  first_name: String!
+  last_name: String!
+  name_suffix: String
+  customer_type: String!
+  customer_status: String!
+  relationship_start_date: Date!
+  citizenship_country: String
+  preferred_language: String
+  mortgages(limit: Int = 10, offset: Int = 0): [Mortgage!]
+  credit_cards(limit: Int = 10, offset: Int = 0): [CreditCard!]
+  consumer_loans(limit: Int = 10, offset: Int = 0): [ConsumerLoan!]
+}
+
+type Mortgage {
+  loan_id: String!
+  loan_number: String!
+  customer_id: String!
+  loan_status: String!
+  loan_program: String
+  lien_position: String!
+  loan_purpose: String
+  occupancy_type: String
+  rate_type: String!
+  interest_rate: Float!
+  original_principal_cents: Long!
+  current_principal_cents: Long!
+  original_term_months: Int!
+  remaining_term_months: Int
+  monthly_pi_payment_cents: Long!
+  total_monthly_payment_cents: Long!
+  funding_date: Date!
+  first_payment_date: Date!
+  maturity_date: Date!
+  next_payment_due_date: Date
+}
+
+type CreditCard {
+  credit_card_account_id: String!
+  account_number: String!
+  customer_id: String!
+  product_name: String
+  account_status: String!
+  credit_limit_cents: Long!
+  available_credit_cents: Long
+  current_balance_cents: Long!
+  minimum_payment_due_cents: Long
+  payment_due_date: Date
+  purchase_apr: Float!
+  opened_date: Date!
+  autopay_enrolled: Boolean!
+  rewards_program: String
+  rewards_balance: Long
+}
+
+type ConsumerLoan {
+  loan_id: String!
+  loan_number: String!
+  customer_id: String!
+  loan_type: String!
+  loan_purpose: String
+  original_amount_cents: Long!
+  current_balance_cents: Long!
+  interest_rate: Float!
+  rate_type: String!
+  monthly_payment_cents: Long!
+  original_term_months: Int!
+  remaining_term_months: Int
+  funding_date: Date!
+  maturity_date: Date!
+  next_payment_due_date: Date
+  autopay_enrolled: Boolean!
+}
+
+type ConsolidatedLoanPayments {
+  payment_id: String!
+  instrument_type: String!
+  instrument_id: String!
+  customer_id: String!
+  payment_amount_cents: Long!
+  payment_type: String!
+  payment_status: String!
+  payment_date: Date
+  principal_cents: Long
+  interest_cents: Long
+}
+
+"An RFC-3339 compliant Full Date Scalar"
+scalar Date
+
+"A DateTime scalar that handles both full RFC3339 and shorter timestamp formats"
+scalar DateTime
+
+"A 64-bit signed integer"
+scalar Long
+
+type Query {
+  "Basic customer profile (no sensitive PII) with relationships to all active lending instruments."
+  Customer(customer_id: String, limit: Int = 10, offset: Int = 0): [Customer!]
+  "Active mortgage loans, queryable by loan or customer."
+  Mortgage(loan_id: String, customer_id: String, limit: Int = 10, offset: Int = 0): [Mortgage!]
+  "Active credit card accounts, queryable by account or customer."
+  CreditCard(credit_card_account_id: String, customer_id: String, limit: Int = 10, offset: Int = 0): [CreditCard!]
+  "Active consumer loans (personal and auto), queryable by loan or customer."
+  ConsumerLoan(loan_id: String, customer_id: String, limit: Int = 10, offset: Int = 0): [ConsumerLoan!]
+  "Unified payment history across all lending instruments for a customer."
+  ConsolidatedLoanPayments(customer_id: String!, limit: Int = 10, offset: Int = 0): [ConsolidatedLoanPayments!]
+}
+
+enum _McpMethodType {
+  NONE
+  TOOL
+  RESOURCE
+}
+
+enum _RestMethodType {
+  NONE
+  GET
+  POST
+}
+
+directive @api(mcp: _McpMethodType, rest: _RestMethodType, uri: String) on QUERY | MUTATION | FIELD_DEFINITION
