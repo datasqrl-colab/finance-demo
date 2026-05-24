@@ -4,4 +4,4 @@ sqrl_iceberg_data/
 # IDE
 .idea/
 *.iml
-
+.claude/
