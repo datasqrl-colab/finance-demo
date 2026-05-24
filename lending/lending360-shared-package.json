@@ -1,0 +1,35 @@
+{
+  "version": "1",
+  "enabled-engines": ["flink", "postgres", "kafka", "vertx"],
+  "script": {
+    "main": "lending360.sqrl",
+    "api": {
+      "v1": {
+        "schema": "lending360-api/schema.v1.graphqls",
+        "operations": ["lending360-api/operations.v1.graphql"]
+      }
+    }
+  },
+  "engines": {
+    "flink": {
+      "config": {
+        "execution.runtime-mode": "STREAMING",
+        "table.exec.source.idle-timeout": "30 s"
+      }
+    }
+  },
+  "compiler": {
+    "predicate-pushdown-rules": "LIMITED_RULES",
+    "api": {
+      "protocols": [
+        "GRAPHQL",
+        "REST",
+        "MCP"
+      ],
+      "endpoints": "FULL",
+      "add-prefix": true,
+      "max-result-depth": 2,
+      "default-limit": 20
+    }
+  }
+}

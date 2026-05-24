@@ -20,9 +20,11 @@ Data is sourced from the internal data catalog:
 ## Project Structure
 
 ```
-lending360/
+lending/
 ├── lending360.sqrl                  # Main processing logic
+├── lending360-shared-package.json   # Shared configuration between all environments
 ├── lending360-test-package.json     # Test configuration
+├── lending360-prod-package.json     # Prod configuration
 ├── lending360-api/
 │   ├── schema.v1.graphqls           # GraphQL API schema
 │   ├── operations.v1.graphql        # API endpoints (GraphQL, REST, MCP)
