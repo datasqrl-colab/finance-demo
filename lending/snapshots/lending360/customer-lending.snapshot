@@ -1,0 +1,33 @@
+{
+  "data" : {
+    "Customer" : [ {
+      "customer_id" : "CUST-001",
+      "first_name" : "John",
+      "last_name" : "Smith",
+      "customer_type" : "INDIVIDUAL",
+      "customer_status" : "ACTIVE",
+      "mortgages" : [ {
+        "loan_id" : "ML-001",
+        "loan_number" : "MTG-2020-123456",
+        "loan_program" : "CONVENTIONAL",
+        "interest_rate" : 0.0375,
+        "current_principal_cents" : 29850000,
+        "total_monthly_payment_cents" : 193128
+      } ],
+      "credit_cards" : [ {
+        "credit_card_account_id" : "CCA-001",
+        "product_name" : "Rewards Plus Card",
+        "current_balance_cents" : 375000,
+        "credit_limit_cents" : 1500000,
+        "purchase_apr" : 0.1899
+      } ],
+      "consumer_loans" : [ {
+        "loan_id" : "PL-001",
+        "loan_type" : "PERSONAL",
+        "loan_purpose" : "HOME_IMPROVEMENT",
+        "current_balance_cents" : 1875000,
+        "monthly_payment_cents" : 79425
+      } ]
+    } ]
+  }
+}

@@ -26,7 +26,8 @@ Mortgage := SELECT loan_id, loan_number,
                    total_monthly_payment_cents, funding_date, first_payment_date,
                    maturity_date, next_payment_due_date
             FROM _LatestMortgageLoan
-            WHERE loan_status = 'ACTIVE';
+            WHERE loan_status = 'ACTIVE'
+            ORDER BY funding_date DESC, loan_id;
 
 /** Active credit card accounts with current balance and credit terms. */
 /*+query_by_any(credit_card_account_id, customer_id) */
@@ -36,13 +37,12 @@ CreditCard := SELECT credit_card_account_id, account_number,
                      current_balance_cents, minimum_payment_due_cents, payment_due_date,
                      purchase_apr, opened_date, autopay_enrolled, rewards_program, rewards_balance
               FROM _LatestCreditCardAccount
-              WHERE account_status = 'OPEN';
+              WHERE account_status = 'OPEN'
+              ORDER BY opened_date DESC, credit_card_account_id;
 
 -- Combine personal and auto loans into a common schema for the ConsumerLoan table.
 -- loan_purpose is null for auto loans since that concept maps to loan_type there.
-/** Active personal and auto loans in a unified view with common lending attributes. */
-/*+query_by_any(loan_id, customer_id) */
-ConsumerLoan :=
+_ConsumerLoanRaw :=
     SELECT loan_id, loan_number,
            primary_borrower_customer_id AS customer_id,
            'PERSONAL' AS loan_type, loan_purpose,
@@ -63,13 +63,18 @@ ConsumerLoan :=
     FROM _LatestAutoLoan
     WHERE loan_status = 'ACTIVE';
 
+/** Active personal and auto loans in a unified view with common lending attributes. */
+/*+query_by_any(loan_id, customer_id) */
+ConsumerLoan := SELECT * FROM _ConsumerLoanRaw ORDER BY funding_date DESC, loan_id;
+
 /** Basic customer profile without sensitive PII (SSN, TIN, and date of birth are excluded). */
 /*+query_by_any(customer_id) */
 Customer := SELECT customer_id, first_name, last_name, name_suffix,
                    customer_type, customer_status, relationship_start_date,
                    citizenship_country, preferred_language
             FROM _LatestCustomer
-            WHERE customer_status = 'ACTIVE';
+            WHERE customer_status = 'ACTIVE'
+            ORDER BY customer_id;
 
 /** Active mortgages owned by this customer. */
 Customer.mortgages := SELECT * FROM Mortgage m WHERE m.customer_id = this.customer_id ORDER BY m.funding_date DESC;
@@ -135,11 +140,7 @@ _CreditCardPayments :=
     FROM cc.Credit_Card_Payment ccp
     JOIN _LatestCreditCardAccount cca ON ccp.credit_card_account_id = cca.credit_card_account_id;
 
-/** All loan payments across mortgages, consumer loans, and credit cards.
-    Allows customers to see a unified payment history across all their lending instruments.
-    instrument_type values: MORTGAGE, PERSONAL_LOAN, AUTO_LOAN, CREDIT_CARD */
-/*+query_by_all(customer_id) */
-ConsolidatedLoanPayments :=
+_AllPayments :=
     SELECT payment_id, instrument_type, instrument_id, customer_id,
            payment_amount_cents, payment_type, payment_status,
            payment_date, principal_cents, interest_cents, ingested_at
@@ -154,6 +155,12 @@ ConsolidatedLoanPayments :=
            payment_amount_cents, payment_type, payment_status,
            payment_date, principal_cents, interest_cents, ingested_at
     FROM _CreditCardPayments;
+
+/** All loan payments across mortgages, consumer loans, and credit cards.
+    Allows customers to see a unified payment history across all their lending instruments.
+    instrument_type values: MORTGAGE, PERSONAL_LOAN, AUTO_LOAN, CREDIT_CARD */
+/*+query_by_all(customer_id) */
+ConsolidatedLoanPayments := SELECT * FROM _AllPayments ORDER BY payment_date DESC, payment_id;
 
 -- Test queries: validate key tables using known test data values
 
