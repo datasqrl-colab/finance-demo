@@ -10,7 +10,7 @@
 
 IMPORT data-catalog.customer.customer_data.customer_master-{{environment}} AS cs;
 IMPORT data-catalog.customer.customer_data.kyc_aml-{{environment}} AS kyc;
-IMPORT data-catalog.customer.customer_data.customer_enriched-{{environment}} AS sink;
+IMPORT customer_enriched_sinks-{{environment}} AS sink;
 
 
 -- ============================================================
@@ -147,7 +147,7 @@ WHERE c.customer_status IN ('ACTIVE', 'INACTIVE');
 /*+query_by_any(customer_id) */
 Customer_Profile := SELECT * FROM _CustomerComputed;
 
-EXPORT _CustomerComputed TO sink.Customer_Profile_sink;
+EXPORT _CustomerComputed TO sink.Customer_Profile;
 
 -- ============================================================
 -- HOUSEHOLD FORMATION
@@ -236,7 +236,7 @@ LEFT JOIN _CustomerHousehold h ON c.customer_id = h.customer_id
 LEFT JOIN _ResidentialAddress ha ON COALESCE(h.household_id, c.customer_id) = ha.customer_id
 WHERE c.customer_status IN ('ACTIVE', 'INACTIVE');
 
-EXPORT Customer_Household TO sink.Customer_Household_sink;
+EXPORT Customer_Household TO sink.Customer_Household;
 
 -- ============================================================
 -- DATA QUALITY TABLES

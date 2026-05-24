@@ -1,0 +1,32 @@
+IMPORT data-catalog.customer.customer_data.customer_enriched.*;
+
+CREATE TABLE Customer_Profile (
+    /** Timestamp when profile was computed */
+   computed_at TIMESTAMP_LTZ(3) NOT NULL,
+   PRIMARY KEY (customer_id) NOT ENFORCED
+) WITH (
+      'connector' = 'iceberg',
+      'catalog-type' = 'hadoop',
+      'catalog-name' = 'test-data',
+      'catalog-database' = 'customer_data',
+      'catalog-table' = 'customer_profile',
+      'warehouse' = 'sqrl_iceberg_data/',
+      'format-version' = '2',
+      'write.upsert.enabled' = 'true'
+) LIKE Customer_Profile_schema;
+
+
+CREATE TABLE Customer_Household (
+    /** Timestamp when profile was computed */
+    computed_at TIMESTAMP_LTZ(3) NOT NULL,
+    PRIMARY KEY (household_id, customer_id) NOT ENFORCED
+) WITH (
+      'connector' = 'iceberg',
+      'catalog-type' = 'hadoop',
+      'catalog-name' = 'test-data',
+      'catalog-database' = 'customer_data',
+      'catalog-table' = 'customer_household',
+      'warehouse' = 'sqrl_iceberg_data',
+      'format-version' = '2',
+      'write.upsert.enabled' = 'true'
+) LIKE Customer_Household_schema;
