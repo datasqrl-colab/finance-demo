@@ -13,7 +13,6 @@
       "risk_rating" : "LOW",
       "is_kyc_verified" : true,
       "is_pep" : false,
-      "active_deposit_account_count" : 0,
       "is_digital_enrolled" : false
     }, {
       "customer_id" : "CUST-002",
@@ -28,7 +27,6 @@
       "risk_rating" : "LOW",
       "is_kyc_verified" : true,
       "is_pep" : false,
-      "active_deposit_account_count" : 0,
       "is_digital_enrolled" : false
     }, {
       "customer_id" : "CUST-003",
@@ -43,7 +41,6 @@
       "risk_rating" : "LOW",
       "is_kyc_verified" : true,
       "is_pep" : false,
-      "active_deposit_account_count" : 0,
       "is_digital_enrolled" : false
     }, {
       "customer_id" : "CUST-004",
@@ -58,7 +55,6 @@
       "risk_rating" : "MEDIUM",
       "is_kyc_verified" : true,
       "is_pep" : true,
-      "active_deposit_account_count" : 0,
       "is_digital_enrolled" : false
     }, {
       "customer_id" : "CUST-005",
@@ -73,7 +69,6 @@
       "risk_rating" : "LOW",
       "is_kyc_verified" : true,
       "is_pep" : false,
-      "active_deposit_account_count" : 0,
       "is_digital_enrolled" : false
     }, {
       "customer_id" : "CUST-006",
@@ -88,7 +83,6 @@
       "risk_rating" : "LOW",
       "is_kyc_verified" : true,
       "is_pep" : false,
-      "active_deposit_account_count" : 0,
       "is_digital_enrolled" : false
     }, {
       "customer_id" : "CUST-007",
@@ -103,7 +97,6 @@
       "risk_rating" : "MEDIUM",
       "is_kyc_verified" : true,
       "is_pep" : false,
-      "active_deposit_account_count" : 0,
       "is_digital_enrolled" : false
     }, {
       "customer_id" : "CUST-008",
@@ -118,7 +111,6 @@
       "risk_rating" : "LOW",
       "is_kyc_verified" : true,
       "is_pep" : false,
-      "active_deposit_account_count" : 0,
       "is_digital_enrolled" : false
     } ]
   }
