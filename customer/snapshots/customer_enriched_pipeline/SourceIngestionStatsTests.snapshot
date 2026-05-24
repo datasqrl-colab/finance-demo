@@ -1,0 +1,145 @@
+{
+  "data" : {
+    "SourceIngestionStatsTests" : [ {
+      "source_name" : "Customer_Risk_Rating",
+      "window_start" : "2024-01-14T22:00:00.000Z",
+      "window_end" : "2024-01-15T06:59:59.999Z",
+      "record_count" : 2,
+      "min_source_updated_at" : "2024-01-15T06:00:00.000Z",
+      "max_source_updated_at" : "2024-01-15T06:00:00.000Z"
+    }, {
+      "source_name" : "Customer",
+      "window_start" : "2024-01-14T03:00:00.000Z",
+      "window_end" : "2024-01-14T11:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-14T11:00:00.000Z",
+      "max_source_updated_at" : "2024-01-14T11:00:00.000Z"
+    }, {
+      "source_name" : "Customer_Address",
+      "window_start" : "2024-01-14T03:00:00.000Z",
+      "window_end" : "2024-01-14T11:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-14T11:00:00.000Z",
+      "max_source_updated_at" : "2024-01-14T11:00:00.000Z"
+    }, {
+      "source_name" : "Customer_Contact",
+      "window_start" : "2024-01-14T03:00:00.000Z",
+      "window_end" : "2024-01-14T11:59:59.999Z",
+      "record_count" : 2,
+      "min_source_updated_at" : "2024-01-14T11:00:00.000Z",
+      "max_source_updated_at" : "2024-01-14T11:00:00.000Z"
+    }, {
+      "source_name" : "Customer_Risk_Rating",
+      "window_start" : "2024-01-13T22:00:00.000Z",
+      "window_end" : "2024-01-14T06:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-14T06:00:00.000Z",
+      "max_source_updated_at" : "2024-01-14T06:00:00.000Z"
+    }, {
+      "source_name" : "Customer",
+      "window_start" : "2024-01-13T05:00:00.000Z",
+      "window_end" : "2024-01-13T13:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-13T13:20:00.000Z",
+      "max_source_updated_at" : "2024-01-13T13:20:00.000Z"
+    }, {
+      "source_name" : "Customer_Address",
+      "window_start" : "2024-01-13T05:00:00.000Z",
+      "window_end" : "2024-01-13T13:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-13T13:20:00.000Z",
+      "max_source_updated_at" : "2024-01-13T13:20:00.000Z"
+    }, {
+      "source_name" : "Customer_Contact",
+      "window_start" : "2024-01-13T05:00:00.000Z",
+      "window_end" : "2024-01-13T13:59:59.999Z",
+      "record_count" : 2,
+      "min_source_updated_at" : "2024-01-13T13:20:00.000Z",
+      "max_source_updated_at" : "2024-01-13T13:20:00.000Z"
+    }, {
+      "source_name" : "Customer_Risk_Rating",
+      "window_start" : "2024-01-12T22:00:00.000Z",
+      "window_end" : "2024-01-13T06:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-13T06:00:00.000Z",
+      "max_source_updated_at" : "2024-01-13T06:00:00.000Z"
+    }, {
+      "source_name" : "Customer",
+      "window_start" : "2024-01-12T01:00:00.000Z",
+      "window_end" : "2024-01-12T09:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-12T09:15:00.000Z",
+      "max_source_updated_at" : "2024-01-12T09:15:00.000Z"
+    }, {
+      "source_name" : "Customer_Address",
+      "window_start" : "2024-01-12T01:00:00.000Z",
+      "window_end" : "2024-01-12T09:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-12T09:15:00.000Z",
+      "max_source_updated_at" : "2024-01-12T09:15:00.000Z"
+    }, {
+      "source_name" : "Customer_Contact",
+      "window_start" : "2024-01-12T01:00:00.000Z",
+      "window_end" : "2024-01-12T09:59:59.999Z",
+      "record_count" : 2,
+      "min_source_updated_at" : "2024-01-12T09:15:00.000Z",
+      "max_source_updated_at" : "2024-01-12T09:15:00.000Z"
+    }, {
+      "source_name" : "Customer_Risk_Rating",
+      "window_start" : "2024-01-11T22:00:00.000Z",
+      "window_end" : "2024-01-12T06:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-12T06:00:00.000Z",
+      "max_source_updated_at" : "2024-01-12T06:00:00.000Z"
+    }, {
+      "source_name" : "Customer",
+      "window_start" : "2024-01-10T06:00:00.000Z",
+      "window_end" : "2024-01-10T14:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-10T14:22:00.000Z",
+      "max_source_updated_at" : "2024-01-10T14:22:00.000Z"
+    }, {
+      "source_name" : "Customer_Address",
+      "window_start" : "2024-01-10T06:00:00.000Z",
+      "window_end" : "2024-01-10T14:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-10T14:22:00.000Z",
+      "max_source_updated_at" : "2024-01-10T14:22:00.000Z"
+    }, {
+      "source_name" : "Customer_Contact",
+      "window_start" : "2024-01-10T06:00:00.000Z",
+      "window_end" : "2024-01-10T14:59:59.999Z",
+      "record_count" : 3,
+      "min_source_updated_at" : "2024-01-10T14:22:00.000Z",
+      "max_source_updated_at" : "2024-01-10T14:22:00.000Z"
+    }, {
+      "source_name" : "Customer_Relationship",
+      "window_start" : "2024-01-10T06:00:00.000Z",
+      "window_end" : "2024-01-10T14:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-10T14:22:00.000Z",
+      "max_source_updated_at" : "2024-01-10T14:22:00.000Z"
+    }, {
+      "source_name" : "Customer_Risk_Rating",
+      "window_start" : "2024-01-09T22:00:00.000Z",
+      "window_end" : "2024-01-10T06:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-10T06:00:00.000Z",
+      "max_source_updated_at" : "2024-01-10T06:00:00.000Z"
+    }, {
+      "source_name" : "Customer",
+      "window_start" : "2024-01-08T00:00:00.000Z",
+      "window_end" : "2024-01-08T08:59:59.999Z",
+      "record_count" : 1,
+      "min_source_updated_at" : "2024-01-08T08:30:00.000Z",
+      "max_source_updated_at" : "2024-01-08T08:30:00.000Z"
+    }, {
+      "source_name" : "Customer_Address",
+      "window_start" : "2024-01-08T00:00:00.000Z",
+      "window_end" : "2024-01-08T08:59:59.999Z",
+      "record_count" : 2,
+      "min_source_updated_at" : "2024-01-08T08:30:00.000Z",
+      "max_source_updated_at" : "2024-01-08T08:30:00.000Z"
+    } ]
+  }
+}

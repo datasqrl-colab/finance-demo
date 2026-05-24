@@ -257,22 +257,52 @@ LEFT JOIN _CustomerRiskRating r ON c.customer_id = r.customer_id
 WHERE c.customer_status = 'ACTIVE' AND r.customer_id IS NULL ORDER BY c.source_updated_at DESC;
 
 -- ============================================================
+-- OBSERVABILITY
+-- ============================================================
+
+-- Union of all source table records with source metadata
+_SourceRecords := SELECT 'Customer' AS source_name, source_updated_at, ingested_at FROM cs.Customer
+  UNION ALL SELECT 'Customer_Address' AS source_name, source_updated_at, ingested_at FROM cs.Customer_Address
+  UNION ALL SELECT 'Customer_Contact' AS source_name, source_updated_at, ingested_at FROM cs.Customer_Contact
+  UNION ALL SELECT 'Customer_Relationship' AS source_name, source_updated_at, ingested_at FROM cs.Customer_Relationship
+  UNION ALL SELECT 'Customer_Risk_Rating' AS source_name, source_updated_at, ingested_at FROM kyc.Customer_Risk_Rating
+  UNION ALL SELECT 'Kyc_Verification' AS source_name, verified_at AS source_updated_at, ingested_at FROM kyc.Kyc_Verification
+  UNION ALL SELECT 'Pep_Screening' AS source_name, screened_at AS source_updated_at, ingested_at FROM kyc.Pep_Screening;
+
+/** Hourly source ingestion statistics per source table.
+    Tracks record counts and source_updated_at range per tumbling hour window. */
+/*+query_by_any(source_name) */
+SourceIngestionStats := SELECT
+  source_name,
+  window_start,
+  window_time AS window_end,
+  COUNT(*) AS record_count,
+  MIN(source_updated_at) AS min_source_updated_at,
+  MAX(source_updated_at) AS max_source_updated_at
+FROM TABLE(TUMBLE(TABLE _SourceRecords, DESCRIPTOR(ingested_at), INTERVAL '1' HOUR))
+GROUP BY source_name, window_start, window_end, window_time
+ORDER BY window_time DESC, source_name ASC;
+
+-- ============================================================
 -- TEST QUERIES
 -- ============================================================
 
 /*+test */
 CustomerProfileTest := SELECT
-  customer_id, full_name, primary_email, primary_phone,
-  primary_address, primary_city, primary_state,
-  customer_type, customer_status, risk_rating,
-  is_kyc_verified, is_pep,
-  active_deposit_account_count, is_digital_enrolled
-FROM Customer_Profile
-ORDER BY customer_id ASC;
+                           customer_id, full_name, primary_email, primary_phone,
+                           primary_address, primary_city, primary_state,
+                           customer_type, customer_status, risk_rating,
+                           is_kyc_verified, is_pep,
+                           is_digital_enrolled
+                       FROM Customer_Profile
+                       ORDER BY customer_id ASC;
 
 /*+test */
 CustomerHouseholdTest := SELECT
-  household_id, customer_id, household_role, is_primary, household_size,
-  household_address, household_city, match_method, is_current
-FROM Customer_Household
-ORDER BY customer_id ASC;
+                             household_id, customer_id, household_role, is_primary, household_size,
+                             household_address, household_city, match_method, is_current
+                         FROM Customer_Household
+                         ORDER BY customer_id ASC;
+
+/*+test */
+SourceIngestionStatsTests := SELECT * FROM SourceIngestionStats;
