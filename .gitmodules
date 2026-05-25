@@ -1,6 +1,6 @@
 [submodule "customer/data-catalog"]
 	path = customer/data-catalog
-	url = git@github.com:datasqrl-colab/finance-data-catalog-demo.git
+	url = https://github.com/datasqrl-colab/finance-data-catalog-demo.git
 [submodule "lending/data-catalog"]
 	path = lending/data-catalog
-	url = git@github.com:datasqrl-colab/finance-data-catalog-demo.git
+	url = https://github.com/datasqrl-colab/finance-data-catalog-demo.git
