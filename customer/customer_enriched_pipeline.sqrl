@@ -18,35 +18,27 @@ IMPORT customer_enriched_sinks-{{environment}} AS sink;
 -- ============================================================
 
 -- Latest customer record per customer_id (CDC append-stream dedup)
-/*+no_query*/
 _Customer := DISTINCT cs.Customer ON customer_id ORDER BY source_updated_at DESC;
 
 -- Latest address per (customer_id, address_type)
-/*+no_query*/
 _CustomerAddress := DISTINCT cs.Customer_Address ON customer_id, address_type ORDER BY source_updated_at DESC;
 
 -- Filter to active relationships before deduplication
-/*+no_query*/
 _ActiveRelationship := SELECT * FROM cs.Customer_Relationship WHERE is_active = true;
 
 -- Latest active relationship per pair
-/*+no_query*/
 _CustomerRelationship := DISTINCT _ActiveRelationship ON primary_customer_id, related_customer_id ORDER BY source_updated_at DESC;
 
 -- Filter to current risk rating rows (SCD Type 2 — is_current flags the active row)
-/*+no_query*/
 _CurrentRiskRating := SELECT * FROM kyc.Customer_Risk_Rating WHERE is_current = true;
 
 -- Current risk rating per customer
-/*+no_query*/
 _CustomerRiskRating := DISTINCT _CurrentRiskRating ON customer_id ORDER BY source_updated_at DESC;
 
 -- Latest KYC verification result per customer
-/*+no_query*/
 _KycVerification := DISTINCT kyc.Kyc_Verification ON customer_id ORDER BY verified_at DESC;
 
 -- Latest PEP screening per customer
-/*+no_query*/
 _PepScreening := DISTINCT kyc.Pep_Screening ON customer_id ORDER BY screened_at DESC;
 
 -- ============================================================
@@ -54,7 +46,6 @@ _PepScreening := DISTINCT kyc.Pep_Screening ON customer_id ORDER BY screened_at 
 -- ============================================================
 
 -- Email: verified preferred over unverified; ties broken by recency
-/*+no_query*/
 _EmailByPriority := SELECT
   customer_id,
   contact_value AS primary_email,
@@ -63,11 +54,9 @@ _EmailByPriority := SELECT
 FROM cs.Customer_Contact
 WHERE contact_type = 'EMAIL';
 
-/*+no_query*/
 _PrimaryEmail := DISTINCT _EmailByPriority ON customer_id ORDER BY email_pref ASC, source_updated_at DESC;
 
 -- Phone: MOBILE > HOME_PHONE > WORK_PHONE; ties broken by recency
-/*+no_query*/
 _PhoneByPriority := SELECT
   customer_id,
   contact_value AS primary_phone,
@@ -76,11 +65,9 @@ _PhoneByPriority := SELECT
 FROM cs.Customer_Contact
 WHERE contact_type IN ('MOBILE', 'HOME_PHONE', 'WORK_PHONE');
 
-/*+no_query*/
 _PrimaryPhone := DISTINCT _PhoneByPriority ON customer_id ORDER BY phone_pref ASC, source_updated_at DESC;
 
 -- Current residential (PRIMARY) address per customer
-/*+no_query*/
 _ResidentialAddress := SELECT * FROM _CustomerAddress
 WHERE address_type = 'PRIMARY' AND is_current = true;
 
@@ -91,7 +78,6 @@ WHERE address_type = 'PRIMARY' AND is_current = true;
 -- Pre-compute TIMESTAMPDIFF expressions in Flink before writing to Postgres.
 -- Postgres cannot translate TIMESTAMPDIFF or CAST(expr AS DATE) — keeping them
 -- in this intermediate layer ensures Customer_Profile only references plain columns.
-/*+no_query*/
 /*+engine(flink)*/
 _CustomerComputed := SELECT
   c.customer_id,
@@ -155,7 +141,6 @@ EXPORT _CustomerComputed TO sink.Customer_Profile;
 
 -- Normalize relationship pairs: smaller customer_id always in hh_head position
 -- to eliminate duplicate bidirectional entries.
-/*+no_query*/
 _RelPairsNorm := SELECT
   CASE WHEN primary_customer_id < related_customer_id
        THEN primary_customer_id ELSE related_customer_id END AS hh_head,
@@ -167,11 +152,9 @@ FROM _CustomerRelationship
 WHERE relationship_type IN ('SPOUSE', 'JOINT_OWNER', 'DEPENDENT');
 
 -- Deduplicate pairs; oldest relationship wins for household_id stability.
-/*+no_query*/
 _HouseholdPairs := DISTINCT _RelPairsNorm ON hh_head, hh_member ORDER BY eff_from ASC;
 
 -- Head member entry for each relationship household
-/*+no_query*/
 _HhHeads := SELECT
   hh_head AS household_id,
   hh_head AS customer_id,
@@ -184,7 +167,6 @@ _HhHeads := SELECT
 FROM _HouseholdPairs;
 
 -- Non-head member entry for each relationship household
-/*+no_query*/
 _HhMembers := SELECT
   hh_head AS household_id,
   hh_member AS customer_id,
@@ -200,11 +182,9 @@ _HhMembers := SELECT
 FROM _HouseholdPairs;
 
 -- Combined household rows from all relationship-based memberships
-/*+no_query*/
 _HouseholdFromRel := SELECT * FROM _HhHeads UNION ALL SELECT * FROM _HhMembers;
 
 -- One household assignment per customer; oldest membership retained for stability
-/*+no_query*/
 _CustomerHousehold := DISTINCT _HouseholdFromRel ON customer_id ORDER BY eff_from ASC;
 
 /** Customer household assignments: one row per customer.
