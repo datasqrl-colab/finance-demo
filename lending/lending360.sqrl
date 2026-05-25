@@ -183,8 +183,7 @@ ConsumerLoan_Test := SELECT loan_id, loan_number, customer_id, loan_type, loan_p
 
 /*+test */
 Customer_Test := SELECT customer_id, first_name, last_name, customer_type, customer_status,
-                        relationship_start_date, preferred_language
-                 FROM Customer WHERE customer_id = 'CUST-001' ORDER BY customer_id;
+                        
 
 /*+test */
 ConsolidatedLoanPayments_Test := SELECT payment_id, instrument_type, instrument_id, customer_id,
