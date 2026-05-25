@@ -1,0 +1,128 @@
+name: Build and Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      sqrl_image:
+        description: "Full SQRL CLI image reference (e.g. ghcr.io/datasqrl/cmd:pr-123). Overrides SQRL_VERSION."
+        required: false
+        default: ''
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SQRL_VERSION: '0.10.4'
+
+jobs:
+  customer:
+    name: Customer Enrichment Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: customer
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve SQRL image
+        id: image
+        run: |
+          if [ -n "${{ inputs.sqrl_image }}" ]; then
+            IMAGE="${{ inputs.sqrl_image }}"
+          else
+            IMAGE="ghcr.io/datasqrl/cmd:${SQRL_VERSION}"
+          fi
+          echo "ref=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Docker image
+        uses: ScribeMD/docker-cache@0.5.0
+        with:
+          key: sqrl-${{ runner.os }}-${{ steps.image.outputs.ref }}
+
+      - name: Pull SQRL image
+        run: docker pull "${{ steps.image.outputs.ref }}"
+
+      - name: Compile (test config)
+        run: |
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+            "${{ steps.image.outputs.ref }}" \
+            compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json
+
+      - name: Compile (prod config)
+        run: |
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+            "${{ steps.image.outputs.ref }}" \
+            compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-prod-package.json
+
+      - name: Test
+        run: |
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+            "${{ steps.image.outputs.ref }}" \
+            test customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json
+
+  lending:
+    name: Lending 360
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: lending
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve SQRL image
+        id: image
+        run: |
+          if [ -n "${{ inputs.sqrl_image }}" ]; then
+            IMAGE="${{ inputs.sqrl_image }}"
+          else
+            IMAGE="ghcr.io/datasqrl/cmd:${SQRL_VERSION}"
+          fi
+          echo "ref=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Docker image
+        uses: ScribeMD/docker-cache@0.5.0
+        with:
+          key: sqrl-${{ runner.os }}-${{ steps.image.outputs.ref }}
+
+      - name: Pull SQRL image
+        run: docker pull "${{ steps.image.outputs.ref }}"
+
+      - name: Compile (test config)
+        run: |
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+            "${{ steps.image.outputs.ref }}" \
+            compile lending360-shared-package.json lending360-test-package.json
+
+      - name: Compile (prod config)
+        run: |
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+            "${{ steps.image.outputs.ref }}" \
+            compile lending360-shared-package.json lending360-prod-package.json
+
+      - name: Test
+        run: |
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+            "${{ steps.image.outputs.ref }}" \
+            test lending360-shared-package.json lending360-test-package.json
+
+  build:
+    name: Build
+    needs: [customer, lending]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Fail if any job failed
+        run: |
+          failed=$(jq -r '.[] | select(.result=="failure")' <<< '${{ toJson(needs) }}' | wc -l)
+          if [[ "$failed" -gt 0 ]]; then
+            echo "::error ::${failed} job(s) failed"
+            exit 1
+          fi
