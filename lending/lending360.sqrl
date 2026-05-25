@@ -191,3 +191,6 @@ ConsolidatedLoanPayments_Test := SELECT payment_id, instrument_type, instrument_
                                         payment_amount_cents, payment_type, payment_status, payment_date
                                  FROM ConsolidatedLoanPayments WHERE customer_id = 'CUST-001'
                                  ORDER BY payment_id;
+
+
+
