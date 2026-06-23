@@ -1,0 +1,14 @@
+{
+  "script": {
+    "config": {
+      "is_batch": true
+    }
+  },
+  "engines": {
+    "flink": {
+      "config": {
+        "execution.runtime-mode": "BATCH"
+      }
+    }
+  }
+}
