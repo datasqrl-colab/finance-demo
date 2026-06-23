@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SQRL_VERSION: '0.10.5'
+  SQRL_VERSION: '0.10.6'
 
 jobs:
   customer:
