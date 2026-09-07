@@ -27,6 +27,8 @@ Regulatory scope: **GLBA, GDPR, CCPA** (customer PII) and **BSA, USA PATRIOT Act
 
 Both sources are parameterized by environment (`test` uses filesystem files, `prod` reads from Apache Iceberg tables via `${CUSTOMER_DATA_ICEBERG_WAREHOUSE}`).
 
+Source definitions come from the shared [`data-catalog`](../data-catalog) submodule at the repository root, wired in via `script.include` in `customer_enriched_pipeline-shared-package.json`.
+
 ### Outputs (Silver Layer)
 
 | Table | Grain | Sink |
@@ -36,7 +38,7 @@ Both sources are parameterized by environment (`test` uses filesystem files, `pr
 
 ### Key Processing Decisions
 
-**Deduplication** — All source streams use `DISTINCT ON ... ORDER BY source_updated_at DESC` (latest-record-wins). SCD Type 2 tables (risk ratings) use the `is_current` flag before deduplication to select the active row.
+**Deduplication** — All source streams use `DISTINCT ON ... ORDER BY source_updated_at DESC` (latest-record-wins). SCD Type 2 tables (risk ratings) use the `is_current` flag before deduplication to select the active row. The output tables `Customer_Profile` and `Customer_Household` are likewise `DISTINCT`-keyed by `customer_id`, which gives the upsert sinks an explicit upsert key (required by DataSQRL 0.11+) and lets a later record for the same customer overwrite any earlier transient row.
 
 **Contact resolution** — Rather than picking any contact record, priority rules select the single best contact: verified email before unverified; phone ranked MOBILE > HOME_PHONE > WORK_PHONE. This ensures a deterministic, highest-quality contact per customer.
 
@@ -73,18 +75,20 @@ All three protocols are enabled. The API exposes:
 
 ## Commands
 
+Run all commands from the **repository root**: the whole repository is mounted so the shared `data-catalog` submodule is visible, and `-r customer` selects this project.
+
 ### Compile
 
 Validate the pipeline compiles without errors:
 
 ```bash
 # Test configuration
-docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/build datasqrl/cmd \
-  compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json
+docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/workspace datasqrl/cmd \
+  compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json -r customer
 
 # Production configuration
-docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/build datasqrl/cmd \
-  compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-prod-package.json
+docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/workspace datasqrl/cmd \
+  compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-prod-package.json -r customer
 ```
 
 ### Test
@@ -92,8 +96,8 @@ docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/build datasqrl/cmd \
 Run all tests and validate snapshots:
 
 ```bash
-docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/build datasqrl/cmd \
-  test customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json
+docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/workspace datasqrl/cmd \
+  test customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json -r customer
 ```
 
 Test snapshots are stored in `snapshots/customer_enriched_pipeline/`. The test suite covers:
@@ -107,8 +111,8 @@ Test snapshots are stored in `snapshots/customer_enriched_pipeline/`. The test s
 Start the full pipeline locally (Flink + Iceberg + DuckDB + API server):
 
 ```bash
-docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/build datasqrl/cmd \
-  run customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json
+docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/workspace datasqrl/cmd \
+  run customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json -r customer
 ```
 
 - Flink WebUI: http://localhost:8081/

@@ -2,6 +2,14 @@
   "script": {
     "config": {
       "is_batch": true
+    },
+    "include": {
+      "data-catalog": {
+        "package": "../data-catalog/ontology-test-package.json",
+        "config": {
+          "is_batch": true
+        }
+      }
     }
   },
   "engines": {

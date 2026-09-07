@@ -131,9 +131,9 @@ WHERE c.customer_status IN ('ACTIVE', 'INACTIVE');
     One row per active or inactive customer.
     Counts for deposit/credit/loan products default to 0 pending downstream enrichment. */
 /*+query_by_any(customer_id) */
-Customer_Profile := SELECT * FROM _CustomerComputed;
+Customer_Profile := DISTINCT _CustomerComputed ON customer_id ORDER BY computed_at DESC;
 
-EXPORT _CustomerComputed TO sink.Customer_Profile;
+EXPORT Customer_Profile TO sink.Customer_Profile;
 
 -- ============================================================
 -- HOUSEHOLD FORMATION
@@ -187,12 +187,11 @@ _HouseholdFromRel := SELECT * FROM _HhHeads UNION ALL SELECT * FROM _HhMembers;
 -- One household assignment per customer; oldest membership retained for stability
 _CustomerHousehold := DISTINCT _HouseholdFromRel ON customer_id ORDER BY eff_from ASC;
 
-/** Customer household assignments: one row per customer.
-    Relationship-based households use the head customer's residential address.
-    Singletons (no qualifying relationship) use their own address as household address
-    and household_id = customer_id. */
-/*+query_by_any(household_id, customer_id) */
-Customer_Household := SELECT
+-- Raw household assignment rows; keyed via the DISTINCT below so the
+-- upsert key is explicit for the upsert sink. Keyed by customer_id alone
+-- (a customer belongs to exactly one household), so a transient singleton
+-- row is overwritten under the same key when the relationship match arrives.
+_CustomerHouseholdRows := SELECT
   COALESCE(h.household_id, c.customer_id) AS household_id,
   c.customer_id,
   COALESCE(h.household_role, 'HEAD') AS household_role,
@@ -215,6 +214,13 @@ FROM _Customer c
 LEFT JOIN _CustomerHousehold h ON c.customer_id = h.customer_id
 LEFT JOIN _ResidentialAddress ha ON COALESCE(h.household_id, c.customer_id) = ha.customer_id
 WHERE c.customer_status IN ('ACTIVE', 'INACTIVE');
+
+/** Customer household assignments: one row per customer.
+    Relationship-based households use the head customer's residential address.
+    Singletons (no qualifying relationship) use their own address as household address
+    and household_id = customer_id. */
+/*+query_by_any(household_id, customer_id) */
+Customer_Household := DISTINCT _CustomerHouseholdRows ON customer_id ORDER BY computed_at DESC;
 
 EXPORT Customer_Household TO sink.Customer_Household;
 
