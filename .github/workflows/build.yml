@@ -16,16 +16,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SQRL_VERSION: '0.10.6'
+  SQRL_VERSION: '0.11.4'
 
 jobs:
   customer:
     name: Customer Enrichment Pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: customer
 
     steps:
       - uses: actions/checkout@v4
@@ -52,29 +49,26 @@ jobs:
 
       - name: Compile (test config)
         run: |
-          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/workspace \
             "${{ steps.image.outputs.ref }}" \
-            compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json
+            compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json -r customer
 
       - name: Compile (prod config)
         run: |
-          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/workspace \
             "${{ steps.image.outputs.ref }}" \
-            compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-prod-package.json
+            compile customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-prod-package.json -r customer
 
       - name: Test
         run: |
-          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/workspace \
             "${{ steps.image.outputs.ref }}" \
-            test customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json
+            test customer_enriched_pipeline-shared-package.json customer_enriched_pipeline-test-package.json -r customer
 
   lending:
     name: Lending 360
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: lending
 
     steps:
       - uses: actions/checkout@v4
@@ -101,21 +95,21 @@ jobs:
 
       - name: Compile (test config)
         run: |
-          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/workspace \
             "${{ steps.image.outputs.ref }}" \
-            compile lending360-shared-package.json lending360-test-package.json
+            compile lending360-shared-package.json lending360-test-package.json -r lending
 
       - name: Compile (prod config)
         run: |
-          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/workspace \
             "${{ steps.image.outputs.ref }}" \
-            compile lending360-shared-package.json lending360-prod-package.json
+            compile lending360-shared-package.json lending360-prod-package.json -r lending
 
       - name: Test
         run: |
-          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/build \
+          docker run -i --rm -p 8888:8888 -p 8081:8081 -v "$PWD":/workspace \
             "${{ steps.image.outputs.ref }}" \
-            test lending360-shared-package.json lending360-test-package.json
+            test lending360-shared-package.json lending360-test-package.json -r lending
 
   build:
     name: Build

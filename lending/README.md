@@ -12,7 +12,7 @@ A customer-facing data application that provides a unified view of all lending i
 
 ## Data Sources
 
-Data is sourced from the internal data catalog:
+Data is sourced from the shared [`data-catalog`](../data-catalog) submodule at the repository root, wired in via `script.include` in `lending360-shared-package.json`:
 - `data-catalog/lending/mortgages` — mortgage originations and servicing
 - `data-catalog/lending/cards_consumer_credit` — consumer loans and credit cards
 - `data-catalog/customer/customer_data` — customer master records
@@ -47,8 +47,11 @@ lending/
 
 ## Running Tests
 
+Run from the **repository root**: the whole repository is mounted so the shared `data-catalog` submodule is visible, and `-r lending` selects this project.
+
 ```bash
-/opt/agent/cmd.sh test lending360-test-package.json
+docker run -it --rm -p 8888:8888 -p 8081:8081 -v $PWD:/workspace datasqrl/cmd \
+  test lending360-shared-package.json lending360-test-package.json -r lending
 ```
 
 ## Design Notes

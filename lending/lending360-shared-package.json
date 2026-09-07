@@ -3,6 +3,14 @@
   "enabled-engines": ["flink", "postgres", "kafka", "vertx"],
   "script": {
     "main": "lending360.sqrl",
+    "include": {
+      "data-catalog": {
+        "package": "../data-catalog/ontology-test-package.json",
+        "config": {
+          "is_batch": false
+        }
+      }
+    },
     "api": {
       "v1": {
         "schema": "lending360-api/schema.v1.graphqls",

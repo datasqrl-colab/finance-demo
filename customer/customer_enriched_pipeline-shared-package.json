@@ -2,7 +2,15 @@
   "version": "1",
   "enabled-engines": ["flink", "iceberg", "duckdb", "vertx"],
   "script": {
-    "main": "customer_enriched_pipeline.sqrl"
+    "main": "customer_enriched_pipeline.sqrl",
+    "include": {
+      "data-catalog": {
+        "package": "../data-catalog/ontology-test-package.json",
+        "config": {
+          "is_batch": false
+        }
+      }
+    }
   },
   "engines": {
     "flink": {
