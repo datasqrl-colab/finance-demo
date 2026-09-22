@@ -80,6 +80,126 @@
       "household_city" : "Seattle",
       "match_method" : "SINGLETON",
       "is_current" : true
+    }, {
+      "household_id" : "CUST-009",
+      "customer_id" : "CUST-009",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "9174 Lincoln Road",
+      "household_city" : "Springfield",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-010",
+      "customer_id" : "CUST-010",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 2,
+      "household_address" : "4114 Washington Way",
+      "household_city" : "Evanston",
+      "match_method" : "RELATIONSHIP",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-011",
+      "customer_id" : "CUST-011",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 2,
+      "household_address" : "2202 River Avenue",
+      "household_city" : "Tacoma",
+      "match_method" : "RELATIONSHIP",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-013",
+      "customer_id" : "CUST-013",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "589 Lake Road",
+      "household_city" : "Seattle",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-014",
+      "customer_id" : "CUST-014",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "4222 Maple Street",
+      "household_city" : "Seattle",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-015",
+      "customer_id" : "CUST-015",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 2,
+      "household_address" : "6258 River Avenue",
+      "household_city" : "Springfield",
+      "match_method" : "RELATIONSHIP",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-016",
+      "customer_id" : "CUST-016",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 2,
+      "household_address" : "5125 Lincoln Street",
+      "household_city" : "Springfield",
+      "match_method" : "RELATIONSHIP",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-018",
+      "customer_id" : "CUST-018",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 2,
+      "household_address" : "5849 River Drive",
+      "household_city" : "Austin",
+      "match_method" : "RELATIONSHIP",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-019",
+      "customer_id" : "CUST-019",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "734 Main Boulevard",
+      "household_city" : "Portland",
+      "match_method" : "SINGLETON",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-020",
+      "customer_id" : "CUST-020",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 2,
+      "household_address" : "3664 Highland Road",
+      "household_city" : "San Diego",
+      "match_method" : "RELATIONSHIP",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-021",
+      "customer_id" : "CUST-021",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 2,
+      "household_address" : "9751 River Court",
+      "household_city" : "Denver",
+      "match_method" : "RELATIONSHIP",
+      "is_current" : true
+    }, {
+      "household_id" : "CUST-022",
+      "customer_id" : "CUST-022",
+      "household_role" : "HEAD",
+      "is_primary" : true,
+      "household_size" : 1,
+      "household_address" : "4190 Hill Avenue",
+      "household_city" : "Tacoma",
+      "match_method" : "SINGLETON",
+      "is_current" : true
     } ]
   }
 }
