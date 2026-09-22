@@ -7,7 +7,7 @@ Both data products consume the shared [`data-catalog`](data-catalog) — a git s
 ```bash
 git clone --recurse-submodules <repo-url>
 # or, in an existing checkout:
-git submodule update --init
+git submodule update --init --remote data-catalog
 ```
 
 ## Data Products
