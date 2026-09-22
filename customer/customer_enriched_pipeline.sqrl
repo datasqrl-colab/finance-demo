@@ -50,7 +50,8 @@ _EmailByPriority := SELECT
   customer_id,
   contact_value AS primary_email,
   CASE WHEN verification_status = 'VERIFIED' THEN 0 ELSE 1 END AS email_pref,
-  source_updated_at
+  source_updated_at,
+  ingested_at
 FROM cs.Customer_Contact
 WHERE contact_type = 'EMAIL';
 
@@ -61,7 +62,8 @@ _PhoneByPriority := SELECT
   customer_id,
   contact_value AS primary_phone,
   CASE contact_type WHEN 'MOBILE' THEN 0 WHEN 'HOME_PHONE' THEN 1 ELSE 2 END AS phone_pref,
-  source_updated_at
+  source_updated_at,
+  ingested_at
 FROM cs.Customer_Contact
 WHERE contact_type IN ('MOBILE', 'HOME_PHONE', 'WORK_PHONE');
 
