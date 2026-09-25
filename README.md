@@ -2,7 +2,7 @@
 
 Real-time streaming data products for financial services built with DataSQRL.
 
-Both data products consume the shared [`data-catalog`](data-catalog) — a git submodule at the repository root — via `script.include` in their shared package files. Clone with submodules:
+Both data products consume the shared [`data-catalog`]([data-catalog](https://github.com/datasqrl-colab/finance-data-catalog-demo)) — a git submodule at the repository root — via `script.include` in their shared package files. Clone with submodules:
 
 ```bash
 git clone --recurse-submodules <repo-url>
