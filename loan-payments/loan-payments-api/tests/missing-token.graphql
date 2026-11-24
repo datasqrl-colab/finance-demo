@@ -1,0 +1,7 @@
+query MissingToken {
+  LoanPaymentSummary(loan_id: "PL-115") {
+    loan_id
+    customer_id
+    total_paid_cents
+  }
+}

@@ -1,0 +1,12 @@
+query LoanSummaryReturned {
+  LoanPaymentSummary(loan_id: "PL-115") {
+    loan_id
+    customer_id
+    returned_payment_count
+    applied_payment_count
+    total_paid_cents
+    principal_paid_cents
+    interest_paid_cents
+    last_payment_date
+  }
+}

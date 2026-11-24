@@ -1,0 +1,37 @@
+{
+  "script": {
+    "config": {
+      "environment": "test"
+    }
+  },
+  "engines": {
+    "flink": {
+      "config": {
+        "table.exec.source.idle-timeout": "0 s"
+      }
+    },
+    "vertx": {
+      "config": {
+        "auth": {
+          "issuers": [
+            {
+              "issuer": "loan-payments-test-issuer",
+              "audiences": ["loan-payments-test-audience"],
+              "keys": [{ "kty": "oct", "k": "ZHVtbXktc3VwZXItc2VjcmV0LWp3dC1zaWduaW5nLXN0cmluZw" }]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "test-runner": {
+    "use-inferred-schema": true,
+    "delay-sec": -1,
+    "required-checkpoints": 1,
+    "snapshot-folder": "snapshots/loan-payments_table_test/",
+    "test-folder": "no-graphql-tests/",
+    "headers": {
+      "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2FuLXBheW1lbnRzLXRlc3QtaXNzdWVyIiwiYXVkIjpbImxvYW4tcGF5bWVudHMtdGVzdC1hdWRpZW5jZSJdLCJleHAiOjk5OTk5OTk5OTksImN1c3RvbWVyX2lkIjoiQ1VTVC0wNjAiLCJpYXQiOjE3OTU1MTEwMjZ9.PWHFR9DBUyp1W3WC7rQHPrNwmYiM20NDgc-TBjwd3Wc"
+    }
+  }
+}

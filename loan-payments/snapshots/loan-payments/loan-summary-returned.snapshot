@@ -1,0 +1,14 @@
+{
+  "data" : {
+    "LoanPaymentSummary" : {
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "returned_payment_count" : 1,
+      "applied_payment_count" : 11,
+      "total_paid_cents" : 635360,
+      "principal_paid_cents" : 439761,
+      "interest_paid_cents" : 195599,
+      "last_payment_date" : "2026-09-04"
+    }
+  }
+}

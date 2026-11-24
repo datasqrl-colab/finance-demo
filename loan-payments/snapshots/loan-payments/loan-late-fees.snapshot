@@ -1,0 +1,13 @@
+{
+  "data" : {
+    "LoanPaymentSummary" : {
+      "loan_id" : "PL-035",
+      "customer_id" : "CUST-061",
+      "applied_payment_count" : 10,
+      "returned_payment_count" : 0,
+      "late_fees_paid_cents" : 7500,
+      "total_paid_cents" : 1042970,
+      "last_payment_date" : "2026-08-10"
+    }
+  }
+}

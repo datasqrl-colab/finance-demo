@@ -1,0 +1,62 @@
+# Payment summary of one loan owned by the signed-in customer.
+# The customer is taken from the JWT claim customer_id, so a caller cannot ask for another customer.
+query LoanSummaryByLoan($loan_id: String!) @api(mcp: TOOL, rest: GET, uri: "/loans/{loan_id}/payment-summary") {
+  LoanPaymentSummary(loan_id: $loan_id) {
+    loan_id
+    customer_id
+    loan_purpose
+    applied_payment_count
+    returned_payment_count
+    total_paid_cents
+    principal_paid_cents
+    interest_paid_cents
+    late_fees_paid_cents
+    last_payment_date
+  }
+}
+
+# Payments of one loan owned by the signed-in customer, newest due date first.
+query LoanPaymentsByLoan($loan_id: String!, $limit: Int = 20, $offset: Int = 0) @api(mcp: TOOL, rest: GET, uri: "/loans/{loan_id}/payments{?limit,offset}") {
+  LoanPayments(loan_id: $loan_id, limit: $limit, offset: $offset) {
+    payment_id
+    loan_id
+    customer_id
+    loan_purpose
+    payment_amount_cents
+    principal_cents
+    interest_cents
+    late_fee_cents
+    other_fees_cents
+    payment_type
+    payment_status
+    due_date
+    received_date
+    applied_date
+    payment_method
+    principal_balance_after_cents
+    days_past_due_at_payment
+    confirmation_number
+    return_reason_code
+  }
+}
+
+# Every personal loan of the signed-in customer, each with its payment summary.
+query MyLoans($limit: Int = 20, $offset: Int = 0) @api(mcp: TOOL, rest: GET, uri: "/my-loans{?limit,offset}") {
+  CustomerLoans(limit: $limit, offset: $offset) {
+    loan_id
+    customer_id
+    loan_purpose
+    loan_status
+    original_amount_cents
+    current_balance_cents
+    monthly_payment_cents
+    next_payment_due_date
+    applied_payment_count
+    returned_payment_count
+    total_paid_cents
+    principal_paid_cents
+    interest_paid_cents
+    late_fees_paid_cents
+    last_payment_date
+  }
+}

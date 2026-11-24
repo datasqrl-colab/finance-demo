@@ -1,0 +1,53 @@
+{
+  "data" : {
+    "LoanPayments" : [ {
+      "payment_id" : "LPMT-1897",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-1698",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-1510",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-1330",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-1153",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-977",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-812",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-653",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-499",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-347",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-195",
+      "payment_status" : "APPLIED",
+      "return_reason_code" : null
+    }, {
+      "payment_id" : "LPMT-046",
+      "payment_status" : "RETURNED",
+      "return_reason_code" : "R01"
+    } ]
+  }
+}

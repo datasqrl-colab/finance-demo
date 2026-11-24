@@ -1,0 +1,83 @@
+"An RFC-3339 compliant date without a time component."
+scalar Date
+
+"A 64-bit signed integer."
+scalar Long
+
+"Per-loan payment counts and totals for one personal loan. Totals and the last payment date cover only APPLIED payments."
+type LoanPaymentSummary {
+  loan_id: String!
+  customer_id: String!
+  loan_purpose: String
+  applied_payment_count: Long!
+  returned_payment_count: Long!
+  total_paid_cents: Long!
+  principal_paid_cents: Long!
+  interest_paid_cents: Long!
+  late_fees_paid_cents: Long!
+  last_payment_date: Date
+}
+
+"One payment of a personal loan, in every payment status."
+type LoanPayments {
+  payment_id: String!
+  loan_id: String!
+  customer_id: String!
+  loan_purpose: String
+  payment_amount_cents: Long!
+  principal_cents: Long
+  interest_cents: Long
+  late_fee_cents: Long
+  other_fees_cents: Long
+  payment_type: String!
+  payment_status: String!
+  due_date: Date!
+  received_date: Date
+  applied_date: Date
+  payment_method: String
+  principal_balance_after_cents: Long
+  days_past_due_at_payment: Int
+  confirmation_number: String
+  return_reason_code: String
+}
+
+"One personal loan of the signed-in customer together with its payment summary."
+type CustomerLoans {
+  loan_id: String!
+  customer_id: String!
+  loan_purpose: String
+  loan_status: String!
+  original_amount_cents: Long!
+  current_balance_cents: Long!
+  monthly_payment_cents: Long!
+  next_payment_due_date: Date
+  applied_payment_count: Long!
+  returned_payment_count: Long!
+  total_paid_cents: Long!
+  principal_paid_cents: Long!
+  interest_paid_cents: Long!
+  late_fees_paid_cents: Long!
+  last_payment_date: Date
+}
+
+type Query {
+  "Payment summary of one loan owned by the signed-in customer. Returns null when the loan does not exist or belongs to another customer."
+  LoanPaymentSummary(loan_id: String!): LoanPaymentSummary
+  "Payments of one loan owned by the signed-in customer, newest due date first, paged with limit and offset."
+  LoanPayments(loan_id: String!, limit: Int = 20, offset: Int = 0): [LoanPayments!]
+  "Every personal loan of the signed-in customer, each with its payment summary."
+  CustomerLoans(limit: Int = 20, offset: Int = 0): [CustomerLoans!]
+}
+
+enum _McpMethodType {
+  NONE
+  TOOL
+}
+
+enum _RestMethodType {
+  NONE
+  GET
+  POST
+}
+
+directive @api(mcp: _McpMethodType, rest: _RestMethodType, uri: String) on QUERY | MUTATION | FIELD_DEFINITION

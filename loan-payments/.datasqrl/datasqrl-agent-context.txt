@@ -1,0 +1,62 @@
+# Task context (persistent — keep these in mind across compaction)
+
+## DataSQRL skills
+
+The DataSQRL skills available. Read the ones your work touches before you
+write or change anything, and open the reference pages they point to.
+
+### /build-catalog — Use when creating or updating a data catalog that defines sources, sinks, and data products used by multiple implementations.
+### /configure-sqrl — Use when configuring a DataSQRL project's `*-package.json` files. Use for engine selection (Flink, Postgres, Kafka, Iceberg and its query engines DuckDB, Snowflake, Spark SQL, Redshift, Trino), API protocols, compiler options, runtime settings, or deployment/infrastructure settings.
+### /data-observation — Use when a task provides source, sample, or test data files to inspect before modeling schemas, connectors, writing test data or implementing anything. Ensures you look at the real data (size, format, values) instead of guessing from filenames, READMEs, or prior knowledge.
+### /design-api — Use when designing or modifying the API exposed by a DataSQRL data pipeline. Use for GraphQL, REST, or MCP endpoints, access control, or data serving requirements. Use for adjusting exposed GraphQL schema.
+### /from-api — Use when requirements define an API schema or specification that the resulting DataSQRL pipeline should expose. Use when requirements (partially) define GraphQL schema, REST endpoints (e.g. Swagger or OpenAPI), or MCP tools with interface or result schema (JSON).
+### /handle-large-data-files — Use when the workspace contains a large data file, or when a compile/test run is blocked with LARGE_DATA_BLOCKED. Used to sample the large files down or exclude them so that DataSQRL compiles seamlessly.
+### /implement-sqrl — Use when writing or editing DataSQRL scripts (.sqrl) for data processing, transformation, aggregation, or serving logic. Use for any pipeline logic implementation. Contains SQRL language spec.
+### /implement-udf — Use when SQRL/SQL alone cannot implement required logic. Use to create custom scalar, aggregate, or table functions in Java.
+### /implement-ui — Use for building simple user interfaces that interact with the API of a DataSQRL pipeline. Use when asked for an interface, UI, SPA, dashboard, or charts for a DataSQRL pipeline.
+### /manage-connector — Use when connecting to external data systems for ingestion or export in DataSQRL. Use for Kafka, filesystem, database, Iceberg, or other connector configuration.
+### /monitor-pipeline — Use when reviewing a DataSQRL pipeline's monitoring needs or implementing data-quality captures and observability statistics. Decide which data quality and monitoring tables are useful and how to build them.
+### /optimize-deployment — Use when planning and implementing a DataSQRL project. Use when user specifically mentions cost or sizing. This includes creating or editing a `*-package.json`, adding an engine or an environment, and setting `engines.<flink|postgres|vertx>.deployment` sizes, CPU, replicas or disks. Also use when asked to reduce cloud cost or right-size a deployment.
+### /test-sqrl — Use when adding or updating tests for a DataSQRL pipeline. Use after implementing features to verify correctness.
+### /troubleshoot-test — Use when a DataSQRL test fails unexpectedly or produces wrong results. Use when previous fix attempts did not resolve the issue. Use for complex DataSQRL compile-time errors or when a previous attempt of fixing a compile time error did not work.
+### /write-documentation — Use when writing or updating project documentation, README files, or API documentation for a DataSQRL project.
+
+## Shared modules (read before configuring imports)
+
+This project consumes external SQRL module(s) that are mounted as **read-only sibling directories** next to your project — NOT inside it. They are shared with other projects; you must **never create, copy, edit, or delete** any file under them. Treat them exactly like a shared data catalog.
+
+Declare the module(s) you actually need under the `script.include` block in your project's `*-package.json` config files — in each config that carries a `script` block (the ones defining `script.main`, i.e. the configs you compile/test with); overlay configs that only define overwrites settings need none. Each include key is the **namespace** you import the module under (prefer underscores for each namespace); its `package` is the path, relative to your project root, to a package file at the module's top level — DataSQRL takes that file's folder as the include root and loads every `.sqrl` in it and its subfolders. Import their scripts by that namespace. Do **not** import them with a bare relative path and do **not** duplicate their contents into your project.
+
+Available shared module(s) — each shown with ONE of its top-level package files as the `package` example; any other package file at that module's top level works (the compiler only uses the file's folder as the include root):
+- `data-catalog` — namespace `data_catalog`, declare `"data_catalog": { "package": "../data-catalog/ontology-shared-package.json" }`
+
+Example package config `script` block:
+```json
+"script": {
+  "main": "<your-main>.sqrl",
+  "include": {
+      "data_catalog": { "package": "../data-catalog/ontology-shared-package.json" }
+  },
+  "config": { "variant": "test" }
+}
+```
+
+Import a script from a module by its namespace (`{{variant}}` is resolved from `script.config`, so the same import serves test/prod):
+```sqrl
+IMPORT data_catalog.<script>-{{variant}} AS my_alias;
+```
+
+If a module's OWN scripts contain `{{...}}` placeholders (inspect them before importing), supply those values in that module's `script.include` entry via a `config` object, e.g. `"data_catalog": { "package": "../data-catalog/ontology-shared-package.json", "config": { "environment": "test" } }` — otherwise unresolved placeholders become SQL parse errors.
+From a script in a subfolder of your project, use the `root` prefix: `IMPORT root.data_catalog.<script>;`.
+
+Compile/test from the project — the package path is resolved at the mount root, so it must be project-qualified:
+```bash
+/opt/agent/cmd.sh compile loan-payments/<your>-package.json
+/opt/agent/cmd.sh test loan-payments/<your>-test-package.json
+```
+
+## Repository inventory
+This repo contains other SQRL projects/modules. `.datasqrl/repo-inventory.md` lists them (paths, READMEs, SQRL files, package summaries) — read it before deciding how to build. They are mounted READ-ONLY: never edit them, never copy their files into this project (include shared modules via `script.include` in `*-package.json` files instead), and never read their `build/` directories.
+
+## Requirements
+Your requirements are in `adr/requirements_20261124-144152.md` (authoritative). Read it before implementing and re-read it after any compaction. There is no implementation plan or checklist for this run — implement the requirements directly.

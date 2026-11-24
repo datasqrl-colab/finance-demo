@@ -1,0 +1,11 @@
+query LoanLateFees {
+  LoanPaymentSummary(loan_id: "PL-035") {
+    loan_id
+    customer_id
+    applied_payment_count
+    returned_payment_count
+    late_fees_paid_cents
+    total_paid_cents
+    last_payment_date
+  }
+}

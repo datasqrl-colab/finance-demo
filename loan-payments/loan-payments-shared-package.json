@@ -1,0 +1,47 @@
+{
+  "version": "1",
+  "enabled-engines": ["flink", "postgres", "vertx"],
+  "script": {
+    "main": "loan-payments.sqrl",
+    "include": {
+      "data_catalog": {
+        "package": "../data-catalog/ontology-test-package.json",
+        "config": {
+          "is_batch": false
+        }
+      }
+    },
+    "api": {
+      "v1": {
+        "schema": "loan-payments-api/schema.v1.graphqls",
+        "operations": ["loan-payments-api/operations.v1.graphql"]
+      }
+    }
+  },
+  "engines": {
+    "flink": {
+      "config": {
+        "execution.runtime-mode": "STREAMING",
+        "table.exec.source.idle-timeout": "30 s"
+      }
+    },
+    "vertx": {
+      "config": {
+        "graphQLTailSampleTracingConfig": {
+          "enabled": true,
+          "defaultThresholdMs": 200
+        }
+      }
+    }
+  },
+  "compiler": {
+    "predicate-pushdown-rules": "LIMITED_RULES",
+    "api": {
+      "protocols": ["GRAPHQL", "REST", "MCP"],
+      "endpoints": "FULL",
+      "add-prefix": true,
+      "max-result-depth": 2,
+      "default-limit": 20
+    }
+  }
+}

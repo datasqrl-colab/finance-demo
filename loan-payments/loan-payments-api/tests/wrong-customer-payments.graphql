@@ -1,0 +1,6 @@
+query WrongCustomerPayments {
+  LoanPayments(loan_id: "PL-115") {
+    payment_id
+    payment_status
+  }
+}

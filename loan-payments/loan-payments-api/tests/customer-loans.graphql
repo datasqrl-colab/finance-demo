@@ -1,0 +1,12 @@
+query CustomerLoansForCustomer {
+  CustomerLoans {
+    loan_id
+    customer_id
+    loan_status
+    loan_purpose
+    current_balance_cents
+    applied_payment_count
+    returned_payment_count
+    total_paid_cents
+  }
+}

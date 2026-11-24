@@ -1,0 +1,15 @@
+{
+  "data" : {
+    "LoanPaymentSummary" : {
+      "loan_id" : "PL-011",
+      "customer_id" : "CUST-066",
+      "applied_payment_count" : 0,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 0,
+      "principal_paid_cents" : 0,
+      "interest_paid_cents" : 0,
+      "late_fees_paid_cents" : 0,
+      "last_payment_date" : null
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "data" : {
+    "CustomerLoansSourceTest" : [ {
+      "loan_id" : "PL-006",
+      "customer_id" : "CUST-060",
+      "loan_status" : "PAID_OFF",
+      "applied_payment_count" : 0,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 0
+    }, {
+      "loan_id" : "PL-007",
+      "customer_id" : "CUST-060",
+      "loan_status" : "PAID_OFF",
+      "applied_payment_count" : 0,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 0
+    }, {
+      "loan_id" : "PL-022",
+      "customer_id" : "CUST-060",
+      "loan_status" : "PAID_OFF",
+      "applied_payment_count" : 0,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 0
+    }, {
+      "loan_id" : "PL-033",
+      "customer_id" : "CUST-060",
+      "loan_status" : "PAID_OFF",
+      "applied_payment_count" : 3,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 173772
+    } ]
+  }
+}

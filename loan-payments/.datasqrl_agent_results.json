@@ -1,0 +1,352 @@
+{
+  "runs": [
+    {
+      "success": true,
+      "mode": "implementation",
+      "harness": "pi",
+      "provider": "together",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "scenario": "pipeline",
+      "domains": [
+        "finance"
+      ],
+      "refinements": 2,
+      "issue_score": 144,
+      "code_check_status": "complete",
+      "llm_judge_status": "complete",
+      "issue_count": {
+        "total": 40,
+        "critical": 0,
+        "high": 3,
+        "medium": 8,
+        "low": 29
+      },
+      "issues": [
+        {
+          "severity": "LOW",
+          "description": "Documentation: The file contains no `--` or inline `/* */` comments explaining the design intent behind the transformations. Doc-strings describe the returned data, but nothing explains why the pipeline deduplicates with `DISTINCT ... ORDER BY source_updated_at DESC`, why event time is composed via `GREATEST` of the various `ingested_at` values, or why the APPLIED and RETURNED payment aggregations are kept in separate internal tables. Adding brief `--` comments at each internal step would make the intent of the pipeline understandable to maintainers.",
+          "location": "loans.sqrl",
+          "verifier": "code"
+        },
+        {
+          "severity": "LOW",
+          "description": "Table Names: The source schema templates `Personal_Loan_schema`, `Auto_Loan_schema`, `Loan_Payment_schema`, `Loan_Application_schema`, and `Consumer_Loan_Delinquency_Event_schema` are only used as schema definitions (via the LIKE clause) and are never exposed through the GraphQL API, yet their names do not start with an underscore. If they are meant to be internal plumbing they should follow the `_`-prefix convention used elsewhere for non-exposed tables.",
+          "location": "loans.sqrl",
+          "verifier": "code"
+        },
+        {
+          "severity": "LOW",
+          "description": "Missing /** */ description for _event_time column in LoanPaymentSummary output; it is exposed via SELECT * from _LoanPaymentSummarySource but not listed in the function comment.",
+          "location": "LoanPaymentSummary",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Missing /** */ description for _event_time column in LoanPayments output; it is exposed via SELECT * from _LoanPaymentsSource but not listed in the function comment.",
+          "location": "LoanPayments",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Missing /** */ description for _event_time column in CustomerLoans output; it is exposed via SELECT * from _CustomerLoansSource but not listed in the function comment.",
+          "location": "CustomerLoans",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "HIGH",
+          "description": "Table _AppliedPaymentAgg uses a global, non-windowed GROUP BY loan_id with MAX(applied_date) and MAX(_event_time), which are non-incremental aggregation functions. On a retract stream this causes unbounded state growth. Recommend using upstream time-windows or aggregating in the database if that state can be large.",
+          "location": "default_catalog.default_database._AppliedPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table _AppliedPaymentAgg performs a global non-windowed aggregation grouped by loan_id. With approximately 2e6 groups, this high-cardinality aggregation may accumulate significant Flink state over time.",
+          "location": "default_catalog.default_database._AppliedPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table _ReturnedPaymentAgg performs a global non-windowed aggregation grouped by loan_id. With approximately 2e6 groups, this high-cardinality aggregation may accumulate significant Flink state over time.",
+          "location": "default_catalog.default_database._ReturnedPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table _CustomerLoansSource contains a stateful equi-join between _LatestPersonalLoan and _LoanPaymentSummarySource on loan_id without time bounds. This may accumulate state over time.",
+          "location": "default_catalog.default_database._CustomerLoansSource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table _LoanPaymentSummarySource contains stateful equi-joins among _AppliedPaymentAgg, _LatestPersonalLoan, and _ReturnedPaymentAgg on loan_id without time bounds. This may accumulate state over time.",
+          "location": "default_catalog.default_database._LoanPaymentSummarySource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table _LoanPaymentsSource contains a stateful equi-join between _LatestPersonalLoan and _LatestPersonalLoanPayment on loan_id without time bounds. This may accumulate state over time.",
+          "location": "default_catalog.default_database._LoanPaymentsSource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Potential performance improvement: the stateful aggregation in _AppliedPaymentAgg could be rewritten with time-bounds (e.g., time-window aggregation) to reduce state accumulation, but only if the original requirements and semantics allow it.",
+          "location": "default_catalog.default_database._AppliedPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Potential performance improvement: the stateful aggregation in _ReturnedPaymentAgg could be rewritten with time-bounds (e.g., time-window aggregation) to reduce state accumulation, but only if the original requirements and semantics allow it.",
+          "location": "default_catalog.default_database._ReturnedPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Potential performance improvement: the stateful join in _CustomerLoansSource could be rewritten with time-bounds (e.g., temporal or interval join) to reduce state accumulation, but only if the original requirements and semantics allow it.",
+          "location": "default_catalog.default_database._CustomerLoansSource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Potential performance improvement: the stateful joins in _LoanPaymentSummarySource could be rewritten with time-bounds (e.g., temporal or interval join) to reduce state accumulation, but only if the original requirements and semantics allow it.",
+          "location": "default_catalog.default_database._LoanPaymentSummarySource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Potential performance improvement: the stateful join in _LoanPaymentsSource could be rewritten as a temporal or interval join to reduce state accumulation, but only if the original requirements and semantics allow it.",
+          "location": "default_catalog.default_database._LoanPaymentsSource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "No data quality (DQ_) tables or observability statistics (OB_) tables were found in the pipeline. Consider adding data quality and observability tables.",
+          "location": "pipeline definition",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "The LoanPayments relationship function has no direct test. The tests only exercise the internal _LoanPaymentsSource table, so the function's loan_id/customer_id auth filter, metadata injection and ORDER BY are untested.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "The LoanPaymentSummary relationship function has no direct test. DuplicateLoanSummaryTest/ZeroPaymentSummaryTest target the internal _LoanPaymentSummarySource table and do not exercise the function's loan_id + customer_id filter or its null-return behavior.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "The CustomerLoans relationship function has no direct test. CustomerLoansSourceTest targets the internal _CustomerLoansSource table but does not exercise the function's customer_id filter or ORDER BY.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "The Auto_Loan source table has no downstream table or function, and no test references it. AutoLoanLeakTest only scans _LoanPaymentsSource for AL- loan ids and does not exercise the Auto_Loan ingestion.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "The Loan_Application source table is ingested but never referenced downstream and has no test coverage.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "The Consumer_Loan_Delinquency_Event source table is ingested but never referenced downstream and has no test coverage.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "The setup block's guard and comment reference the lending/cards_consumer_credit/testdata fixture path, which belongs to a different domain than this cons_loans (consumer-loans) project. The suite may depend on loan fixtures that this script neither verifies nor explicitly fetches, so a clean-checkout run is not guaranteed to have the needed data.",
+          "location": "run-tests.sh",
+          "verifier": "tests"
+        },
+        {
+          "severity": "HIGH",
+          "description": "All five filesystem source tables (Personal_Loan, Auto_Loan, Loan_Payment, Loan_Application, Consumer_Loan_Delinquency_Event) declare `ingested_at TIMESTAMP_LTZ(3) NOT NULL` as a plain data column and then use it as the watermark (`WATERMARK FOR ingested_at AS ingested_at - INTERVAL '10' SECOND`). For a filesystem source, the documented/safe pattern is a computed ingestion-time column (`ingested_at AS now()`) as the watermark, because a source-data 'ingestion' column is not guaranteed to be quasi-monotonically increasing and, combined with the 10-minute `source.monitor-interval`, can advance the watermark past data that arrives in later files and cause late records to be dropped.",
+          "location": "consumer_loans.sql",
+          "verifier": "code"
+        },
+        {
+          "severity": "LOW",
+          "description": "The source tables `Auto_Loan`, `Loan_Application` and `Consumer_Loan_Delinquency_Event` are declared with connectors but are never referenced by any downstream table, relationship, function or test. There is no `--`/`/* */` comment explaining whether these are intentional forward-looking scaffolding or leftover definitions, which makes the intent of the codebase harder to understand.",
+          "location": "consumer_loans.sql",
+          "verifier": "code"
+        },
+        {
+          "severity": "HIGH",
+          "description": "_AppliedPaymentAgg uses a global (non-windowed) GROUP BY loan_id aggregation with the non-incremental MAX function (MAX(applied_date), MAX(_event_time)). On a retract stream this causes unbounded state growth. Recommend using an upstream time-window or aggregating in the database if that state can be large.",
+          "location": "default_catalog.default_database._AppliedPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "_LoanPaymentsSource contains a stateful regular join between _LatestPersonalLoanPayment and _LatestPersonalLoan on loan_id without time bounds. This can accumulate state over time.",
+          "location": "default_catalog.default_database._LoanPaymentsSource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "_LoanPaymentSummarySource contains stateful regular joins between _LatestPersonalLoan and _AppliedPaymentAgg/_ReturnedPaymentAgg on loan_id without time bounds. This can accumulate state over time.",
+          "location": "default_catalog.default_database._LoanPaymentSummarySource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "_CustomerLoansSource contains a stateful regular join between _LatestPersonalLoan and _LoanPaymentSummarySource on loan_id without time bounds. This can accumulate state over time.",
+          "location": "default_catalog.default_database._CustomerLoansSource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Missing data quality and observability tables. No DQ_ or OB_ prefixed tables (or equivalent named definitions) are present in the pipeline.",
+          "location": "pipeline definition",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "_LoanPaymentsSource stateful join could potentially be rewritten as a temporal join if loan versioning is available and the original requirements/semantics allow it, to avoid state accumulation.",
+          "location": "default_catalog.default_database._LoanPaymentsSource",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "_AppliedPaymentAgg global aggregation could potentially be rewritten as a time-window aggregation if only recent payments need to be aggregated and the original requirements/semantics allow it, to avoid state accumulation.",
+          "location": "default_catalog.default_database._AppliedPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "SQRL test coverage gap: the public function `LoanPaymentSummary` (a customer-scoped view over `_LoanPaymentSummarySource`, filtering by `loan_id` and the auth `customer_id`) has no `/*+test*/` query. Only its upstream relation `_LoanPaymentSummarySource` is covered (DuplicateLoanSummaryTest, ZeroPaymentSummaryTest), so the function's own filtering/scoping logic is never exercised.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "SQRL test coverage gap: the public function `LoanPayments` (ordering/filtering `_LoanPaymentsSource` by `loan_id` and the auth `customer_id`) has no `/*+test*/` query. Its upstream `_LoanPaymentsSource` is tested, but the function's filter and ORDER BY logic are not verified.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "SQRL test coverage gap: the public function `CustomerLoans` (customer-scoped view over `_CustomerLoansSource`, filtering by auth `customer_id`) has no `/*+test*/` query. Only the upstream `_CustomerLoansSource` is covered, so the function's scoping logic is untested.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "SQRL test coverage gap: the source table `Auto_Loan` is not referenced by any downstream table or function, so it has no downstream tests. The only related check (AutoLoanLeakTest) merely asserts that no 'AL-%' rows appear in `_LoanPaymentsSource`, which never reads `Auto_Loan`; the table itself is uncovered.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "SQRL test coverage gap: the source table `Loan_Application` is not referenced by any downstream table or function and has no test, so it is entirely uncovered.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "SQRL test coverage gap: the source table `Consumer_Loan_Delinquency_Event` is not referenced by any downstream table or function and has no test, so it is entirely uncovered.",
+          "location": "loan-payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Reproducibility gap in run-tests.sh: when the pinned `datasqrl/cmd:${SQRL_VERSION}` image is unavailable, the script silently falls back to the mutable `datasqrl/cmd:dev` tag. Although a warning is printed, a mutable tag can produce different snapshot output than the version the snapshots were generated with, undermining reproducible test runs from a clean checkout.",
+          "location": "run-tests.sh",
+          "verifier": "tests"
+        }
+      ],
+      "test_commands": [
+        "bash run-tests.sh"
+      ],
+      "test_script": "run-tests.sh",
+      "last_test_scope": [],
+      "compile_commands": [
+        "/opt/agent/cmd.sh compile -r loan-payments loan-payments-shared-package.json loan-payments-prod-package.json -b loan-payments",
+        "/opt/agent/cmd.sh compile -r loan-payments loan-payments-shared-package.json loan-payments-table-test-package.json -b loan-payments_table_test"
+      ],
+      "verified_envs": {
+        "loan-payments": "prod",
+        "loan-payments_table_test": "prod"
+      },
+      "build_dirs": {
+        "loan-payments": "build/loan-payments",
+        "loan-payments_table_test": "build/loan-payments_table_test"
+      },
+      "budget": {
+        "cost_usd": 0.760725,
+        "time_s": 1987.8,
+        "cost_limit": null,
+        "time_limit": null,
+        "agent_calls": 3,
+        "llm_calls": 30,
+        "cost_by_source": {
+          "agent:pi": 0.288668,
+          "judge:code": 0.079948,
+          "judge:config": 0.093005,
+          "judge:pipeline": 0.21139,
+          "judge:tests": 0.087715
+        },
+        "calls_by_source": {
+          "agent:pi": 3,
+          "judge:code": 6,
+          "judge:config": 6,
+          "judge:pipeline": 12,
+          "judge:tests": 6
+        }
+      },
+      "request_uuid": "a5a0a341-67dd-4fe9-88b6-c2c5702db363",
+      "finished_at": "2026-11-24T09:35:20.412755+00:00"
+    },
+    {
+      "success": true,
+      "mode": "planning",
+      "harness": "pi",
+      "provider": "together",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "scenario": "",
+      "domains": [],
+      "refinements": 0,
+      "issue_score": null,
+      "code_check_status": null,
+      "llm_judge_status": null,
+      "issue_count": {
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "issues": [],
+      "test_commands": [],
+      "test_script": "",
+      "last_test_scope": [],
+      "compile_commands": [],
+      "verified_envs": {},
+      "build_dirs": {},
+      "budget": {
+        "cost_usd": 0.074445,
+        "time_s": 92.9,
+        "cost_limit": null,
+        "time_limit": null,
+        "agent_calls": 1,
+        "llm_calls": 0,
+        "cost_by_source": {
+          "agent:pi": 0.074445
+        },
+        "calls_by_source": {
+          "agent:pi": 1
+        }
+      },
+      "request_uuid": "ce794cda-7704-4462-a744-ff62d48b00d8",
+      "finished_at": "2026-11-24T08:46:27.856838+00:00"
+    }
+  ]
+}

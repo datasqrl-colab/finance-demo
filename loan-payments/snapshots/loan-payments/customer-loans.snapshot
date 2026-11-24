@@ -1,0 +1,41 @@
+{
+  "data" : {
+    "CustomerLoans" : [ {
+      "loan_id" : "PL-006",
+      "customer_id" : "CUST-060",
+      "loan_status" : "PAID_OFF",
+      "loan_purpose" : "MAJOR_PURCHASE",
+      "current_balance_cents" : 0,
+      "applied_payment_count" : 0,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 0
+    }, {
+      "loan_id" : "PL-007",
+      "customer_id" : "CUST-060",
+      "loan_status" : "PAID_OFF",
+      "loan_purpose" : "MEDICAL",
+      "current_balance_cents" : 0,
+      "applied_payment_count" : 0,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 0
+    }, {
+      "loan_id" : "PL-022",
+      "customer_id" : "CUST-060",
+      "loan_status" : "PAID_OFF",
+      "loan_purpose" : "MAJOR_PURCHASE",
+      "current_balance_cents" : 0,
+      "applied_payment_count" : 0,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 0
+    }, {
+      "loan_id" : "PL-033",
+      "customer_id" : "CUST-060",
+      "loan_status" : "PAID_OFF",
+      "loan_purpose" : "MAJOR_PURCHASE",
+      "current_balance_cents" : 0,
+      "applied_payment_count" : 3,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 173772
+    } ]
+  }
+}

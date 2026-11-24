@@ -1,0 +1,11 @@
+{
+  "data" : {
+    "ZeroPaymentSummaryTest" : [ {
+      "loan_id" : "PL-011",
+      "applied_payment_count" : 0,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 0,
+      "last_payment_date" : null
+    } ]
+  }
+}

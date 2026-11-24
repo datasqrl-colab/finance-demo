@@ -1,0 +1,22 @@
+{
+  "script": {
+    "config": {
+      "environment": "prod"
+    }
+  },
+  "engines": {
+    "vertx": {
+      "config": {
+        "auth": {
+          "issuers": [
+            {
+              "issuer": "${AUTH_ISSUER}",
+              "audiences": ["${AUTH_AUDIENCE}"],
+              "keys": [{ "kty": "oct", "k": "${JWT_SECRET}" }]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

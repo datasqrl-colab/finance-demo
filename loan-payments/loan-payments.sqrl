@@ -1,0 +1,333 @@
+-- Loan Payments API: personal-loan payment history and per-loan summary for customers.
+--
+-- Sources are the shared data-catalog consumer-loan tables. The pipeline owns no data of its own:
+-- it deduplicates the catalog's CDC streams, keeps only personal-loan payments, enriches them from
+-- their loan record, and exposes three lookups that every filter by the caller's customer_id claim.
+--
+-- The import below pulls the whole consumer-loan dataset, but this project reads only Personal_Loan
+-- and Loan_Payment. The other tables it defines (Auto_Loan, Loan_Application,
+-- Consumer_Loan_Delinquency_Event) are intentionally out of scope and unused, so they need no
+-- tests or downstream tables here.
+
+IMPORT data_catalog.lending.cards_consumer_credit.consumer_loans-{{environment}} AS cons_loans;
+
+-- The catalog owns the connectors and their ingestion settings: in test the sources read JSONL
+-- files with a 10 s watermark and a 10-minute monitor interval, in production they read Kafka
+-- topics from earliest-offset with a 30 s watermark. We reuse those settings as they are. The
+-- `source_updated_at` timestamp is a business version column, so it orders the CDC versions below;
+-- it is deliberately not the event-time/watermark column (`ingested_at` is). The watermarks and
+-- connector choices are the catalog's contract, not this project's, so they are out of scope here.
+-- The test filesystem source re-lists its files every 10 minutes, but the test job drains in about
+-- a minute and production reads Kafka, so the aggregates never see a second snapshot load and
+-- cannot double-count rows.
+
+-- FR-2: reduce the CDC streams to the latest version per key.
+--
+-- Both sources are at-least-once CDC streams: a key can arrive several times with different
+-- versions. `DISTINCT ... ON <key> ORDER BY source_updated_at DESC` keeps exactly one row per key,
+-- the latest version, and turns the append-only stream into a versioned state table. This is also
+-- what makes a changed payment status (FR-8) replace its previous status instead of adding to it.
+_LatestPersonalLoan := DISTINCT cons_loans.Personal_Loan ON loan_id ORDER BY source_updated_at DESC;
+_LatestLoanPayment := DISTINCT cons_loans.Loan_Payment ON payment_id ORDER BY source_updated_at DESC;
+
+-- FR-3: only personal-loan payments. Auto-loan payments are a required exclusion, not an anomaly.
+_LatestPersonalLoanPayment :=
+  SELECT * FROM _LatestLoanPayment WHERE loan_type = 'PERSONAL';
+
+-- FR-4, FR-5: one row per payment in every status, enriched with the customer and purpose of the
+-- loan it belongs to. The inner join also enforces that the loan exists in Personal_Loan; the
+-- catalog guarantees that referential integrity (see the README, Data Quality and Observability).
+--
+-- Kept hidden (`_`) and queried only through the public `LoanPayments` function, which adds the
+-- customer_id claim filter. The `@pii`/`@npi`/`@confidential` tags below propagate from the catalog
+-- columns so the API documentation carries the same classification.
+--
+-- State note: this is a regular join, but both sides are deduplicated versioned-state tables with
+-- at most one row per key, so Flink keeps one entry per loan_id, not one per event. The join state
+-- is therefore bounded by the number of loans and payments, not by the length of the streams.
+/** Internal: personal-loan payments enriched with the customer and purpose of their loan.
+# Columns:
+- payment_id: Unique identifier of the payment.
+- loan_id: The loan the payment belongs to.
+- customer_id: The primary borrower of the loan. @pii
+- loan_purpose: The purpose of the loan.
+- payment_amount_cents: The full payment amount in cents. @npi @confidential
+- principal_cents: The principal portion of the payment in cents. @npi @confidential
+- interest_cents: The interest portion of the payment in cents. @npi @confidential
+- late_fee_cents: The late fee amount in cents.
+- other_fees_cents: Any other fees in cents.
+- payment_type: REGULAR, EXTRA_PRINCIPAL, PAYOFF or PARTIAL.
+- payment_status: APPLIED, PENDING, RETURNED or REVERSED.
+- due_date: The date the payment was due.
+- received_date: The date the payment was received.
+- applied_date: The date the payment was applied.
+- payment_method: ACH, CHECK, DEBIT_CARD or ONLINE.
+- principal_balance_after_cents: The principal balance after the payment in cents. @npi @confidential
+- days_past_due_at_payment: Days past due when the payment was made.
+- confirmation_number: The payment confirmation number.
+- return_reason_code: The reason code when the payment was returned.
+*/
+_LoanPaymentsSource :=
+  SELECT p.payment_id,
+         p.loan_id,
+         l.primary_borrower_customer_id AS customer_id,
+         l.loan_purpose,
+         p.payment_amount_cents,
+         p.principal_cents,
+         p.interest_cents,
+         p.late_fee_cents,
+         p.other_fees_cents,
+         p.payment_type,
+         p.payment_status,
+         p.due_date,
+         p.received_date,
+         p.applied_date,
+         p.payment_method,
+         p.principal_balance_after_cents,
+         p.days_past_due_at_payment,
+         p.confirmation_number,
+         p.return_reason_code,
+         GREATEST(p.ingested_at, l.ingested_at) AS _event_time
+  FROM _LatestPersonalLoanPayment p
+  JOIN _LatestPersonalLoan l ON p.loan_id = l.loan_id;
+
+-- FR-7: only APPLIED payments contribute to the totals and the last payment date. Aggregating in
+-- Flink keeps the summary fresh without a window boundary. MAX(applied_date) is non-incremental,
+-- but the per-loan state it keeps is bounded by the number of applied payments of that loan (the
+-- dataset is finite: the sources retain all payments and the dedup keeps one version per key).
+-- Alternatives are rejected on purpose: a time window would break the latest-status/no-window
+-- requirement, and aggregating in the database would recompute on every request instead of serving
+-- the pre-aggregated, always-current summary.
+_AppliedPaymentAgg :=
+  SELECT loan_id,
+         COUNT(*) AS applied_payment_count,
+         SUM(payment_amount_cents) AS total_paid_cents,
+         SUM(principal_cents) AS principal_paid_cents,
+         SUM(interest_cents) AS interest_paid_cents,
+         SUM(late_fee_cents) AS late_fees_paid_cents,
+         MAX(applied_date) AS last_payment_date,
+         MAX(_event_time) AS _event_time
+  FROM _LoanPaymentsSource
+  WHERE payment_status = 'APPLIED'
+  GROUP BY loan_id;
+
+-- Returned payments are counted separately from the applied aggregate so they never contribute to
+-- the amounts in FR-6/FR-7. A COUNT is incremental, so it keeps one accumulator per loan_id.
+_ReturnedPaymentAgg :=
+  SELECT loan_id, COUNT(*) AS returned_payment_count,
+         MAX(_event_time) AS _event_time
+  FROM _LoanPaymentsSource
+  WHERE payment_status = 'RETURNED'
+  GROUP BY loan_id;
+
+-- FR-6: one row per personal loan. Anchored on the latest loans and LEFT JOINed to both aggregates,
+-- so a loan without payments still appears; COALESCE turns its missing counts and sums into 0 and
+-- leaves last_payment_date null. Grouping only the payments would omit those loans. Returned
+-- payments are a separate LEFT JOIN because they count toward returned_payment_count but must not
+-- contribute to any amount. Both sides are deduplicated keyed tables, so each join keeps one entry
+-- per loan_id, and the state is bounded by the number of loans rather than the stream length.
+/** Internal: per-loan payment counts, totals and last applied payment date for every personal loan.
+# Columns:
+- loan_id: The loan this summary describes.
+- customer_id: The primary borrower of the loan. @pii
+- loan_purpose: The purpose of the loan.
+- applied_payment_count: Number of APPLIED payments.
+- returned_payment_count: Number of RETURNED payments.
+- total_paid_cents: Sum of the APPLIED payment amounts in cents. @npi @confidential
+- principal_paid_cents: Sum of the APPLIED principal portions in cents. @npi @confidential
+- interest_paid_cents: Sum of the APPLIED interest portions in cents. @npi @confidential
+- late_fees_paid_cents: Sum of the APPLIED late fees in cents.
+- last_payment_date: The latest applied_date among APPLIED payments; null when there are none.
+*/
+_LoanPaymentSummarySource :=
+  SELECT l.loan_id,
+         l.primary_borrower_customer_id AS customer_id,
+         l.loan_purpose,
+         COALESCE(a.applied_payment_count, 0) AS applied_payment_count,
+         COALESCE(r.returned_payment_count, 0) AS returned_payment_count,
+         COALESCE(a.total_paid_cents, 0) AS total_paid_cents,
+         COALESCE(a.principal_paid_cents, 0) AS principal_paid_cents,
+         COALESCE(a.interest_paid_cents, 0) AS interest_paid_cents,
+         COALESCE(a.late_fees_paid_cents, 0) AS late_fees_paid_cents,
+         a.last_payment_date,
+         GREATEST(l.ingested_at, COALESCE(a._event_time, l.ingested_at), COALESCE(r._event_time, l.ingested_at)) AS _event_time
+  FROM _LatestPersonalLoan l
+  LEFT JOIN _AppliedPaymentAgg a ON l.loan_id = a.loan_id
+  LEFT JOIN _ReturnedPaymentAgg r ON l.loan_id = r.loan_id;
+
+-- FR-11: the signed-in customer's loans with their summary and the loan details the client shows.
+-- The summary is already derived from _LatestPersonalLoan, but this join is what adds the loan
+-- detail columns (status, balances, next due date) to it; it is a one-row-per-loan lookup, not a
+-- re-aggregation, so it keeps one state entry per loan_id.
+-- This is a hidden internal table; the public `CustomerLoans` function adds the claim filter.
+/** Internal: every personal loan with its summary and the loan details the client displays.
+# Columns:
+- loan_id: The loan identifier.
+- customer_id: The primary borrower of the loan. @pii
+- loan_purpose: The purpose of the loan.
+- loan_status: ACTIVE, PAID_OFF, CHARGED_OFF or SETTLED.
+- original_amount_cents: The original loan amount in cents. @npi @confidential
+- current_balance_cents: The current principal balance in cents. @npi @confidential
+- monthly_payment_cents: The monthly payment amount in cents. @npi @confidential
+- next_payment_due_date: The next payment due date.
+- applied_payment_count: Number of APPLIED payments.
+- returned_payment_count: Number of RETURNED payments.
+- total_paid_cents: Sum of the APPLIED payment amounts in cents. @npi @confidential
+- principal_paid_cents: Sum of the APPLIED principal portions in cents. @npi @confidential
+- interest_paid_cents: Sum of the APPLIED interest portions in cents. @npi @confidential
+- late_fees_paid_cents: Sum of the APPLIED late fees in cents.
+- last_payment_date: The latest applied_date among APPLIED payments; null when there are none.
+*/
+_CustomerLoansSource :=
+  SELECT l.loan_id,
+         l.primary_borrower_customer_id AS customer_id,
+         l.loan_purpose,
+         l.loan_status,
+         l.original_amount_cents,
+         l.current_balance_cents,
+         l.monthly_payment_cents,
+         l.next_payment_due_date,
+         s.applied_payment_count,
+         s.returned_payment_count,
+         s.total_paid_cents,
+         s.principal_paid_cents,
+         s.interest_paid_cents,
+         s.late_fees_paid_cents,
+         s.last_payment_date,
+         GREATEST(l.ingested_at, s._event_time) AS _event_time
+  FROM _LatestPersonalLoan l
+  JOIN _LoanPaymentSummarySource s ON l.loan_id = s.loan_id;
+
+-- FR-9, FR-12: summary of one loan, filtered by the JWT claim so another customer's loan is invisible.
+/** The payment counts, totals and last applied payment date of one personal loan, for its owner.
+    Totals and the last payment date cover only APPLIED payments. The loan is looked up under the
+    loan_id and the signed-in customer, so it returns null when the loan does not exist or does not
+    belong to the caller.
+# Arguments:
+- loan_id: The loan whose summary to return.
+# Columns:
+- loan_id: The loan this summary describes.
+- customer_id: The primary borrower of the loan. @pii
+- loan_purpose: The purpose of the loan.
+- applied_payment_count: Number of APPLIED payments.
+- returned_payment_count: Number of RETURNED payments.
+- total_paid_cents: Sum of the APPLIED payment amounts in cents. @npi @confidential
+- principal_paid_cents: Sum of the APPLIED principal portions in cents. @npi @confidential
+- interest_paid_cents: Sum of the APPLIED interest portions in cents. @npi @confidential
+- late_fees_paid_cents: Sum of the APPLIED late fees in cents.
+- last_payment_date: The latest applied_date among APPLIED payments; null when there are none.
+*/
+LoanPaymentSummary(loan_id STRING NOT NULL, customer_id STRING NOT NULL METADATA FROM 'auth.customer_id') :=
+  SELECT * FROM _LoanPaymentSummarySource
+  WHERE loan_id = :loan_id AND customer_id = :customer_id;
+
+-- FR-10, FR-12: payments of one loan, newest due date first, same claim filter.
+/** The payments of one personal loan, newest due date first, for the loan's owner.
+    Returns no rows when the loan does not exist or does not belong to the caller.
+# Arguments:
+- loan_id: The loan whose payments to return.
+# Columns:
+- payment_id: Unique identifier of the payment.
+- loan_id: The loan the payment belongs to.
+- customer_id: The primary borrower of the loan. @pii
+- loan_purpose: The purpose of the loan.
+- payment_amount_cents: The full payment amount in cents. @npi @confidential
+- principal_cents: The principal portion of the payment in cents. @npi @confidential
+- interest_cents: The interest portion of the payment in cents. @npi @confidential
+- late_fee_cents: The late fee amount in cents.
+- other_fees_cents: Any other fees in cents.
+- payment_type: REGULAR, EXTRA_PRINCIPAL, PAYOFF or PARTIAL.
+- payment_status: APPLIED, PENDING, RETURNED or REVERSED.
+- due_date: The date the payment was due.
+- received_date: The date the payment was received.
+- applied_date: The date the payment was applied.
+- payment_method: ACH, CHECK, DEBIT_CARD or ONLINE.
+- principal_balance_after_cents: The principal balance after the payment in cents. @npi @confidential
+- days_past_due_at_payment: Days past due when the payment was made.
+- confirmation_number: The payment confirmation number.
+- return_reason_code: The reason code when the payment was returned.
+*/
+LoanPayments(loan_id STRING NOT NULL, customer_id STRING NOT NULL METADATA FROM 'auth.customer_id') :=
+  SELECT * FROM _LoanPaymentsSource
+  WHERE loan_id = :loan_id AND customer_id = :customer_id
+  ORDER BY due_date DESC, payment_id;
+
+-- FR-11, FR-12: every personal loan of the signed-in customer, each with its summary.
+/** Every personal loan of the signed-in customer, each with its payment summary and the loan
+    details the client displays. Returns no rows when the customer has no personal loans.
+# Columns:
+- loan_id: The loan identifier.
+- customer_id: The primary borrower of the loan. @pii
+- loan_purpose: The purpose of the loan.
+- loan_status: ACTIVE, PAID_OFF, CHARGED_OFF or SETTLED.
+- original_amount_cents: The original loan amount in cents. @npi @confidential
+- current_balance_cents: The current principal balance in cents. @npi @confidential
+- monthly_payment_cents: The monthly payment amount in cents. @npi @confidential
+- next_payment_due_date: The next payment due date.
+- applied_payment_count: Number of APPLIED payments.
+- returned_payment_count: Number of RETURNED payments.
+- total_paid_cents: Sum of the APPLIED payment amounts in cents. @npi @confidential
+- principal_paid_cents: Sum of the APPLIED principal portions in cents. @npi @confidential
+- interest_paid_cents: Sum of the APPLIED interest portions in cents. @npi @confidential
+- late_fees_paid_cents: Sum of the APPLIED late fees in cents.
+- last_payment_date: The latest applied_date among APPLIED payments; null when there are none.
+*/
+CustomerLoans(customer_id STRING NOT NULL METADATA FROM 'auth.customer_id') :=
+  SELECT * FROM _CustomerLoansSource
+  WHERE customer_id = :customer_id
+  ORDER BY loan_id;
+
+-- ============================================================
+-- DATA QUALITY & OBSERVABILITY
+-- ============================================================
+-- No pipeline-local DQ_ or OB_ tables are defined. The only credible silent-loss path is the inner
+-- join from a PERSONAL payment to Personal_Loan: a payment whose loan record never arrives would
+-- vanish. The catalog already asserts that referential integrity
+-- (LoanPaymentReferencesValidPersonalLoan_Test in data-catalog/lending/lending-ontology.sqrl), so
+-- no capture is warranted. The two sources are not independent senders, so ingestion counters add
+-- no signal, and the auto-loan exclusion is a required filter, not an anomaly. See the README,
+-- "Data Quality and Observability".
+
+-- ============================================================
+-- TEST QUERIES
+-- ============================================================
+
+-- FR-1, FR-3: exactly the 1,010 personal payments remain over 135 loans.
+/*+test */
+LoanPaymentsCountTest :=
+  SELECT COUNT(*) AS payment_rows, COUNT(DISTINCT loan_id) AS loans_with_payments
+  FROM _LoanPaymentsSource;
+
+-- FR-3: no auto-loan payment may leak in. The ordered key makes a failure reproducible.
+/*+test(no_rows) */
+AutoLoanLeakTest :=
+  SELECT * FROM _LoanPaymentsSource WHERE loan_id LIKE 'AL-%' ORDER BY payment_id;
+
+-- FR-2: one row per payment_id.
+/*+test(no_rows) */
+DuplicateLoanPaymentsTest :=
+  SELECT payment_id, COUNT(*) AS num_rows
+  FROM _LoanPaymentsSource GROUP BY payment_id HAVING COUNT(*) > 1 ORDER BY payment_id;
+
+-- FR-2: one row per loan_id.
+/*+test(no_rows) */
+DuplicateLoanSummaryTest :=
+  SELECT loan_id, COUNT(*) AS num_rows
+  FROM _LoanPaymentSummarySource GROUP BY loan_id HAVING COUNT(*) > 1 ORDER BY loan_id;
+
+-- FR-6: PL-011 is one of the 35 personal loans without payments; it must show zero counts and sums
+-- and a null last payment date rather than being absent.
+/*+test */
+ZeroPaymentSummaryTest :=
+  SELECT loan_id, applied_payment_count, returned_payment_count, total_paid_cents, last_payment_date
+  FROM _LoanPaymentSummarySource WHERE loan_id = 'PL-011' ORDER BY loan_id;
+
+-- FR-11: the four-loan customer CUST-060 appears with one row per loan and its summary.
+/*+test */
+CustomerLoansSourceTest :=
+  SELECT loan_id, customer_id, loan_status, applied_payment_count, returned_payment_count, total_paid_cents
+  FROM _CustomerLoansSource WHERE customer_id = 'CUST-060' ORDER BY loan_id;
+
+-- The parameterized functions LoanPaymentSummary and LoanPayments are covered by the API tests in
+-- loan-payments-api/tests/ (snapshots under snapshots/loan-payments/): their customer_id argument is
+-- injected from the JWT, so a table test cannot exercise the function filter and parameter binding.
