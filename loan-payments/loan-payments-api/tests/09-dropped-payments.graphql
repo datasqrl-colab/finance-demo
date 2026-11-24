@@ -1,0 +1,6 @@
+query {
+  DQ_Dropped_Payment {
+    loan_type
+    dropped_payment_count
+  }
+}

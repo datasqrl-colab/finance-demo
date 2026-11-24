@@ -1,0 +1,89 @@
+{
+  "data" : {
+    "LoanPaymentsByLoanId" : [ {
+      "payment_id" : "LPMT-1897",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2026-09-04"
+    }, {
+      "payment_id" : "LPMT-1698",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2026-08-08"
+    }, {
+      "payment_id" : "LPMT-1510",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2026-07-05"
+    }, {
+      "payment_id" : "LPMT-1330",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2026-06-05"
+    }, {
+      "payment_id" : "LPMT-1153",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2026-05-07"
+    }, {
+      "payment_id" : "LPMT-977",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2026-04-03"
+    }, {
+      "payment_id" : "LPMT-812",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2026-03-08"
+    }, {
+      "payment_id" : "LPMT-653",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2026-02-08"
+    }, {
+      "payment_id" : "LPMT-499",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2026-01-03"
+    }, {
+      "payment_id" : "LPMT-347",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2025-12-07"
+    }, {
+      "payment_id" : "LPMT-195",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "APPLIED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2025-11-08"
+    }, {
+      "payment_id" : "LPMT-046",
+      "loan_id" : "PL-115",
+      "customer_id" : "CUST-439",
+      "payment_status" : "RETURNED",
+      "payment_amount_cents" : 57760,
+      "applied_date" : "2025-10-05"
+    } ]
+  }
+}

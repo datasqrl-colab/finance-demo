@@ -1,0 +1,59 @@
+{
+  "data" : {
+    "CustomerLoanSummaries" : [ {
+      "loan_id" : "PL-009",
+      "customer_id" : "CUST-383",
+      "loan_purpose" : "DEBT_CONSOLIDATION",
+      "applied_payment_count" : 0,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 0,
+      "last_payment_date" : null,
+      "payments" : [ ]
+    }, {
+      "loan_id" : "PL-055",
+      "customer_id" : "CUST-383",
+      "loan_purpose" : "MEDICAL",
+      "applied_payment_count" : 12,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 319560,
+      "last_payment_date" : "2026-08-28",
+      "payments" : [ {
+        "payment_id" : "LPMT-1846",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-1645",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-1460",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-1283",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-1107",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-933",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-769",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-611",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-458",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-309",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-157",
+        "payment_status" : "APPLIED"
+      }, {
+        "payment_id" : "LPMT-008",
+        "payment_status" : "APPLIED"
+      } ]
+    } ]
+  }
+}

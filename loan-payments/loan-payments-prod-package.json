@@ -1,0 +1,31 @@
+{
+  "script": {
+    "config": {
+      "environment": "prod"
+    },
+    "include": {
+      "data_catalog": {
+        "package": "../data-catalog/ontology-shared-package.json",
+        "config": {
+          "is_batch": false,
+          "environment": "prod"
+        }
+      }
+    }
+  },
+  "engines": {
+    "vertx": {
+      "config": {
+        "auth": {
+          "issuers": [
+            {
+              "issuer": "${AUTH_ISSUER:-https://sso.example.com/}",
+              "audiences": ["${AUTH_AUDIENCE:-loan-payments-api}"],
+              "jwksUri": "${AUTH_JWKS_URI:-https://sso.example.com/.well-known/jwks.json}"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
