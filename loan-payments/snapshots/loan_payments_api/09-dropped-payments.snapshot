@@ -1,0 +1,8 @@
+{
+  "data" : {
+    "DQ_Dropped_Payment" : [ {
+      "loan_type" : "AUTO",
+      "dropped_payment_count" : 932
+    } ]
+  }
+}

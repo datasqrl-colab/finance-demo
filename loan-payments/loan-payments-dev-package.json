@@ -1,0 +1,27 @@
+{
+  "script": {
+    "config": {
+      "environment": "test"
+    }
+  },
+  "engines": {
+    "vertx": {
+      "config": {
+        "auth": {
+          "issuers": [
+            {
+              "issuer": "loan-payments-issuer",
+              "audiences": ["loan-payments-api"],
+              "keys": [
+                {
+                  "kty": "oct",
+                  "k": "bG9hbi1wYXltZW50cy10ZXN0LXNlY3JldC1zaWduaW5nLXN0cmluZw"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

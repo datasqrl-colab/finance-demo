@@ -1,0 +1,16 @@
+{
+  "data" : {
+    "LoanPaymentSummaryPL035_Test" : [ {
+      "loan_id" : "PL-035",
+      "customer_id" : "CUST-061",
+      "loan_purpose" : "MEDICAL",
+      "applied_payment_count" : 10,
+      "returned_payment_count" : 0,
+      "total_paid_cents" : 1042970,
+      "principal_paid_cents" : 925875,
+      "interest_paid_cents" : 109595,
+      "late_fees_cents" : 7500,
+      "last_payment_date" : "2026-08-10"
+    } ]
+  }
+}

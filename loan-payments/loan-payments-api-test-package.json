@@ -1,0 +1,39 @@
+{
+  "script": {
+    "config": {
+      "environment": "test"
+    }
+  },
+  "engines": {
+    "flink": {
+      "config": {
+        "table.exec.source.idle-timeout": "0 s"
+      }
+    },
+    "vertx": {
+      "config": {
+        "auth": {
+          "issuers": [
+            {
+              "issuer": "loan-payments-issuer",
+              "audiences": ["loan-payments-api"],
+              "keys": [
+                {
+                  "kty": "oct",
+                  "k": "bG9hbi1wYXltZW50cy10ZXN0LXNlY3JldC1zaWduaW5nLXN0cmluZw"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "test-runner": {
+    "use-inferred-schema": false,
+    "delay-sec": -1,
+    "required-checkpoints": 1,
+    "snapshot-folder": "snapshots/loan_payments_api/",
+    "test-folder": "loan-payments-api/tests"
+  }
+}

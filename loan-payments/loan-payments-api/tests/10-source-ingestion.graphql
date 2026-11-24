@@ -1,0 +1,7 @@
+query {
+  OB_SourceIngestionStats {
+    source_name
+    ingestion_month
+    record_count
+  }
+}

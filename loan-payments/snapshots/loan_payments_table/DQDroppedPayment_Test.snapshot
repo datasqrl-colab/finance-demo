@@ -1,0 +1,8 @@
+{
+  "data" : {
+    "DQDroppedPayment_Test" : [ {
+      "loan_type" : "AUTO",
+      "dropped_payment_count" : 932
+    } ]
+  }
+}

@@ -1,0 +1,349 @@
+{
+  "runs": [
+    {
+      "success": true,
+      "mode": "implementation",
+      "harness": "pi",
+      "provider": "together",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "scenario": "pipeline",
+      "domains": [
+        "analytics",
+        "finance"
+      ],
+      "refinements": 0,
+      "issue_score": 160,
+      "code_check_status": "complete",
+      "llm_judge_status": "complete",
+      "issue_count": {
+        "total": 40,
+        "critical": 0,
+        "high": 2,
+        "medium": 18,
+        "low": 20
+      },
+      "issues": [
+        {
+          "severity": "MEDIUM",
+          "description": "Table DQ_Dropped_Payment is of type state but has no valid event timestamp (Timestamp: -). State and stream tables should have a valid timestamp.",
+          "location": "default_catalog.default_database.DQ_Dropped_Payment",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table LoanPaymentSummary is of type state but has no valid event timestamp (Timestamp: -). State and stream tables should have a valid timestamp.",
+          "location": "default_catalog.default_database.LoanPaymentSummary",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table LoanPayments is of type state but has no valid event timestamp (Timestamp: -). State and stream tables should have a valid timestamp.",
+          "location": "default_catalog.default_database.LoanPayments",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table OB_SourceIngestionStats is of type state but has no valid event timestamp (Timestamp: -). State and stream tables should have a valid timestamp.",
+          "location": "default_catalog.default_database.OB_SourceIngestionStats",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table _LoanPaymentAgg is of type state but has no valid event timestamp (Timestamp: -). State and stream tables should have a valid timestamp.",
+          "location": "default_catalog.default_database._LoanPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table DQ_Dropped_Payment contains a stateful regular left join between _LatestLoanPayment and _LatestPersonalLoan on loan_id. This join may accumulate state over time because it is not a temporal or interval join.",
+          "location": "default_catalog.default_database.DQ_Dropped_Payment",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table LoanPaymentSummary contains a stateful regular left join between _LatestPersonalLoan and _LoanPaymentAgg on loan_id. This join may accumulate state over time because it is not a temporal or interval join.",
+          "location": "default_catalog.default_database.LoanPaymentSummary",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table LoanPayments contains a stateful regular inner join between _LatestLoanPayment and _LatestPersonalLoan on loan_id. This join may accumulate state over time because it is not a temporal or interval join.",
+          "location": "default_catalog.default_database.LoanPayments",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Table _LoanPaymentAgg contains a high-cardinality global aggregation (GROUP BY loan_id, ~1e8 rows). This may accumulate too much state over time.",
+          "location": "default_catalog.default_database._LoanPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "HIGH",
+          "description": "Table _LoanPaymentAgg uses a global (non-windowed) aggregation with the non-incremental MAX function (last_payment_date). Using MAX on a retract stream causes unbounded state growth. Recommend using an alternative such as upstream time-windows or aggregating in the database if that state can be large.",
+          "location": "default_catalog.default_database._LoanPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Table DQ_Dropped_Payment uses a regular left join that could potentially be rewritten as a temporal join if _LatestPersonalLoan is treated as a versioned table and the original requirements and semantics allow it.",
+          "location": "default_catalog.default_database.DQ_Dropped_Payment",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Table LoanPaymentSummary uses a regular left join that could potentially be rewritten as a temporal join if the original requirements and semantics allow it.",
+          "location": "default_catalog.default_database.LoanPaymentSummary",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Table LoanPayments uses a regular inner join that could potentially be rewritten as a temporal join if the original requirements and semantics allow it.",
+          "location": "default_catalog.default_database.LoanPayments",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Table _LoanPaymentAgg uses a global aggregation that could potentially be rewritten as a time-window aggregation to avoid state accumulation if the original requirements and semantics allow it (e.g., if only recent payments are needed).",
+          "location": "default_catalog.default_database._LoanPaymentAgg",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Table OB_SourceIngestionStats uses a global aggregation by month that could potentially be rewritten as a time-window aggregation (e.g., TUMBLE) to avoid state accumulation if the original requirements and semantics allow it.",
+          "location": "default_catalog.default_database.OB_SourceIngestionStats",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Function LoanPaymentSummaryByLoanId is not covered by any test (no /*+test */ query and no tested downstream consumer). Its loan_id + auth.customer_id filtering and LIMIT 1 behavior are unverified.",
+          "location": "loan_payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Function LoanPaymentsByLoanId is not covered by any test. Its ownership filter and received_date/payment_id ordering are unverified; no downstream table or function depends on it either.",
+          "location": "loan_payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Function CustomerLoanSummaries is not covered by any test. Its customer_id metadata filter and loan_id ordering are unverified.",
+          "location": "loan_payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Relationship LoanPaymentSummary.payments (used to expose a loan's payments through the summary API) has no test coverage; its loan_id/customer_id join and ordering behavior are unverified.",
+          "location": "loan_payments.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "HIGH",
+          "description": "Criterion: non-incremental aggregation with global (non-windowed) GROUP BY. `_LoanPaymentAgg` is a Flink state table that groups `_LatestLoanPayment` by `loan_id` without any time window and applies `MAX(CASE WHEN payment_status = 'APPLIED' THEN applied_date END)`. MAX is a non-incremental aggregation function, so retractions on the underlying stream force Flink to keep every historical value in state. This leads to unbounded state growth. Recommend rewriting as an upstream time-window aggregation or performing the MIN/MAX computation in the database (Postgres) if the state can be large.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Criterion: stateful join without time bounds causing possible state accumulation. `LoanPayments` performs a regular (non-temporal, non-interval) JOIN between `_LatestLoanPayment` and `_LatestPersonalLoan` on `loan_id`. Both sides are unbounded state, so Flink must retain join state for the lifetime of the job. Row count is ~1e8, so this can accumulate significant state.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Criterion: stateful join without time bounds causing possible state accumulation. `LoanPaymentSummary` performs a regular LEFT JOIN between `_LatestPersonalLoan` and `_LoanPaymentAgg` on `loan_id`. No temporal (`FOR SYSTEM_TIME AS OF`) or interval constraints are applied, so Flink maintains unbounded join state (~1e8 rows).",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Criterion: stateful join without time bounds causing possible state accumulation. `DQ_Dropped_Payment` performs a regular LEFT JOIN between `_LatestLoanPayment` and `_LatestPersonalLoan` on `loan_id` with no temporal or interval constraints, causing Flink to retain unbounded join state.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Criterion: high-cardinality aggregation causing possible state accumulation. `_LoanPaymentAgg` performs a GROUP BY `loan_id` over `_LatestLoanPayment`. With ~1e7 distinct keys this is a high-cardinality aggregation computed in Flink and will accumulate substantial state over time.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Criterion: state table without a valid (event) timestamp. `DQ_Dropped_Payment` is declared with `Type: state` and `Timestamp: -`. A valid event timestamp should be selected so downstream operators/watermarks can reason about time. No time-window is used, so no `window_time` guidance applies.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Criterion: state table without a valid (event) timestamp. `LoanPaymentSummary` is declared with `Type: state` and `Timestamp: -`. A valid event timestamp should be selected.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Criterion: state table without a valid (event) timestamp. `LoanPayments` is declared with `Type: state` and `Timestamp: -`. A valid event timestamp (e.g. `received_date`/`ingested_at`) should be selected.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Criterion: state table without a valid (event) timestamp. `OB_SourceIngestionStats` is declared with `Type: state` and `Timestamp: -`. Because this table is derived from a global GROUP BY, there is no event timestamp propagated; select an explicit timestamp column if observability is desired on this stream.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "MEDIUM",
+          "description": "Criterion: state table without a valid (event) timestamp. `_LoanPaymentAgg` is declared with `Type: state` and `Timestamp: -`. Because it is an aggregation without a window, no event timestamp is propagated; consider selecting/grouping by a timestamp column if time semantics are required.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Criterion: potential performance improvement via time-bounded operator. The global non-windowed GROUP BY on `_LoanPaymentAgg` could potentially be rewritten as a time-window (or interval) aggregation on `applied_date`/`ingested_at` to bound Flink state, but ONLY if the original requirements and business semantics (e.g. lifetime payment totals per loan) allow this change. Currently the aggregation spans all history.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Criterion: potential performance improvement via time-bounded operator. The regular JOIN in `LoanPayments` between `_LatestLoanPayment` and `_LatestPersonalLoan` could potentially be rewritten as a temporal join (`FOR SYSTEM_TIME AS OF`) or interval join if the source streams expose proper event-time columns, but ONLY if that preserves the intended semantics (currently every payment is joined to the current loan record).",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Criterion: potential performance improvement via time-bounded operator. The LEFT JOIN in `LoanPaymentSummary`/`_LoanPaymentAgg` could potentially be rewritten as a temporal or interval join or a time-window aggregation if the semantics of the summary allow it. This is only valid if the requirements permit bounding the aggregation window; otherwise the current global state is required.",
+          "location": "cons_loans.sqrl",
+          "verifier": "pipeline"
+        },
+        {
+          "severity": "LOW",
+          "description": "Query function LoanPaymentsByLoanId (loan_id + auth customer_id filter, ORDER BY received_date DESC) has no /*+test */ query and is not exercised by any other test.",
+          "location": "sqrl/consumer_loans.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Query function LoanPaymentSummaryByLoanId (loan_id + auth customer_id filter, LIMIT 1) has no /*+test */ query and is not exercised by any other test.",
+          "location": "sqrl/consumer_loans.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Query function CustomerLoanSummaries (customer_id metadata filter, ORDER BY loan_id) has no /*+test */ query and is not exercised by any other test.",
+          "location": "sqrl/consumer_loans.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Relationship LoanPaymentSummary.payments (nested table on loan_id + customer_id) has no /*+test */ query; the LoanPaymentSummary test only covers the parent row, not the relationship expansion.",
+          "location": "sqrl/consumer_loans.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Source table Auto_Loan is defined and watermarked but has no downstream use and no snapshot test covering its ingestion/parsing.",
+          "location": "sqrl/consumer_loans.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Source table Loan_Application (Loan_Application_schema) is defined but neither consumed by any derived table nor covered by a snapshot test.",
+          "location": "sqrl/consumer_loans.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "Source table Consumer_Loan_Delinquency_Event (Consumer_Loan_Delinquency_Event_schema) is defined but neither consumed by any derived table nor covered by a snapshot test.",
+          "location": "sqrl/consumer_loans.sqrl",
+          "verifier": "tests"
+        },
+        {
+          "severity": "LOW",
+          "description": "run-tests.sh leaves the setup hook commented out while the suites depend on external JSONL sources under `${DATA_PATH}`; from a clean checkout nothing in the script produces or fetches these fixtures, so the run may not be reproducible.",
+          "location": "run-tests.sh",
+          "verifier": "tests"
+        }
+      ],
+      "test_commands": [
+        "bash run-tests.sh"
+      ],
+      "test_script": "run-tests.sh",
+      "last_test_scope": [],
+      "compile_commands": [
+        "/opt/agent/cmd.sh compile -r loan-payments loan-payments-shared-package.json loan-payments-prod-package.json -b loan_payments",
+        "/opt/agent/cmd.sh compile -r loan-payments loan-payments-shared-package.json loan-payments-table-test-package.json -b loan_payments_table_test"
+      ],
+      "verified_envs": {
+        "loan_payments": "prod",
+        "loan_payments_table_test": "test"
+      },
+      "build_dirs": {
+        "loan_payments": "build/loan_payments",
+        "loan_payments_table_test": "build/loan_payments_table_test"
+      },
+      "budget": {
+        "cost_usd": 0.240482,
+        "time_s": 813.7,
+        "cost_limit": null,
+        "time_limit": null,
+        "agent_calls": 1,
+        "llm_calls": 4,
+        "cost_by_source": {
+          "agent:pi": 0.202471,
+          "judge:pipeline": 0.023711,
+          "judge:tests": 0.0143
+        },
+        "calls_by_source": {
+          "agent:pi": 1,
+          "judge:pipeline": 2,
+          "judge:tests": 2
+        }
+      },
+      "request_uuid": "1a622728-84bf-41d4-b828-e14fb0377f13",
+      "finished_at": "2026-11-24T08:15:54.897033+00:00"
+    },
+    {
+      "success": true,
+      "mode": "planning",
+      "harness": "pi",
+      "provider": "together",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "scenario": "",
+      "domains": [],
+      "refinements": 0,
+      "issue_score": null,
+      "code_check_status": null,
+      "llm_judge_status": null,
+      "issue_count": {
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "issues": [],
+      "test_commands": [],
+      "test_script": "",
+      "last_test_scope": [],
+      "compile_commands": [],
+      "verified_envs": {},
+      "build_dirs": {},
+      "budget": {
+        "cost_usd": 0.058481,
+        "time_s": 76.8,
+        "cost_limit": null,
+        "time_limit": null,
+        "agent_calls": 1,
+        "llm_calls": 0,
+        "cost_by_source": {
+          "agent:pi": 0.058481
+        },
+        "calls_by_source": {
+          "agent:pi": 1
+        }
+      },
+      "request_uuid": "136fe2c4-93c0-41fd-b457-259b1bd16610",
+      "finished_at": "2026-11-24T07:44:08.070802+00:00"
+    }
+  ]
+}

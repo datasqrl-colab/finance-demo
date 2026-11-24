@@ -1,0 +1,156 @@
+"An RFC-3339 compliant full date, for example 2026-09-04."
+scalar Date
+
+"A DateTime scalar that handles both full RFC3339 and shorter timestamp formats."
+scalar DateTime
+
+"A 64-bit signed integer, used for money amounts in cents."
+scalar Long
+
+enum _McpMethodType {
+  NONE
+  TOOL
+  RESOURCE
+}
+
+enum _RestMethodType {
+  NONE
+  GET
+  POST
+}
+
+directive @api(mcp: _McpMethodType, rest: _RestMethodType, uri: String) on QUERY | MUTATION | FIELD_DEFINITION
+
+"One payment made against a personal loan."
+type LoanPayments {
+  "Unique identifier of the payment."
+  payment_id: String!
+  "Identifier of the loan the payment belongs to."
+  loan_id: String!
+  "Identifier of the customer that owns the loan."
+  customer_id: String!
+  "Purpose of the loan, for example MEDICAL or DEBT_CONSOLIDATION."
+  loan_purpose: String
+  "Source loan type. Always PERSONAL in this view."
+  loan_type: String!
+  "Payment amount in cents."
+  payment_amount_cents: Long!
+  "Portion of the payment applied to principal, in cents."
+  principal_cents: Long
+  "Portion of the payment applied to interest, in cents."
+  interest_cents: Long
+  "Late fees included in the payment, in cents."
+  late_fee_cents: Long
+  "Other fees included in the payment, in cents."
+  other_fees_cents: Long
+  "Payment type, for example REGULAR, EXTRA_PRINCIPAL, PAYOFF or PARTIAL."
+  payment_type: String!
+  "Payment status: APPLIED, PENDING, RETURNED or REVERSED."
+  payment_status: String!
+  "Date the payment was due."
+  due_date: Date!
+  "Date the payment was received."
+  received_date: Date
+  "Date the payment was applied."
+  applied_date: Date
+  "Payment method, for example ACH, CHECK, DEBIT_CARD or ONLINE."
+  payment_method: String
+  "Principal balance after the payment, in cents."
+  principal_balance_after_cents: Long
+  "Days past due at the time of the payment."
+  days_past_due_at_payment: Int
+  "Confirmation number of the payment."
+  confirmation_number: String
+  "Reason code when the payment was returned."
+  return_reason_code: String
+}
+
+"Aggregated payment summary for one personal loan."
+type LoanPaymentSummary {
+  "Identifier of the loan."
+  loan_id: String!
+  "Identifier of the customer that owns the loan."
+  customer_id: String!
+  "Purpose of the loan, for example MEDICAL or DEBT_CONSOLIDATION."
+  loan_purpose: String
+  "Number of applied payments on the loan."
+  applied_payment_count: Long!
+  "Number of returned payments on the loan."
+  returned_payment_count: Long!
+  "Total amount paid in cents, from applied payments only."
+  total_paid_cents: Long!
+  "Principal paid in cents, from applied payments only."
+  principal_paid_cents: Long!
+  "Interest paid in cents, from applied payments only."
+  interest_paid_cents: Long!
+  "Late fees paid in cents, from applied payments only."
+  late_fees_cents: Long!
+  "Date of the most recent applied payment. Null when no payment was applied."
+  last_payment_date: Date
+  "The payments of this loan, newest first."
+  payments(limit: Int = 50, offset: Int = 0): [LoanPayments!]
+}
+
+"Payments dropped at the personal-loan join, counted by source loan type."
+type DQ_Dropped_Payment {
+  "Source loan type of the dropped payments."
+  loan_type: String!
+  "Number of dropped payments of this loan type."
+  dropped_payment_count: Long!
+}
+
+"Monthly ingestion count for one consumer-lending source stream."
+type OB_SourceIngestionStats {
+  "Name of the source stream."
+  source_name: String!
+  "Ingestion month in yyyy-MM format."
+  ingestion_month: String!
+  "Number of records received in that month."
+  record_count: Long!
+}
+
+type Query {
+  "The payment summary of one personal loan. Empty when the loan is not the caller's."
+  LoanPaymentSummaryByLoanId(
+    "Identifier of the loan."
+    loan_id: String!
+  ): LoanPaymentSummary
+
+  "The payments of one personal loan, newest first. Empty when the loan is not the caller's."
+  LoanPaymentsByLoanId(
+    "Identifier of the loan."
+    loan_id: String!
+    "Maximum number of payments to return."
+    limit: Int = 50
+    "Number of payments to skip."
+    offset: Int = 0
+  ): [LoanPayments!]
+
+  "All personal loans of the authenticated customer, each with its payment summary."
+  CustomerLoanSummaries(
+    "Maximum number of loans to return."
+    limit: Int = 50
+    "Number of loans to skip."
+    offset: Int = 0
+  ): [LoanPaymentSummary!]
+
+  "Payments dropped at the personal-loan join, counted by source loan type (operations)."
+  DQ_Dropped_Payment(
+    "Optional filter by source loan type."
+    loan_type: String
+    "Maximum number of rows to return."
+    limit: Int = 20
+    "Number of rows to skip."
+    offset: Int = 0
+  ): [DQ_Dropped_Payment!]
+
+  "Monthly ingestion counts per consumer-lending source stream (operations)."
+  OB_SourceIngestionStats(
+    "Optional filter by source stream name."
+    source_name: String
+    "Maximum number of rows to return."
+    limit: Int = 20
+    "Number of rows to skip."
+    offset: Int = 0
+  ): [OB_SourceIngestionStats!]
+}

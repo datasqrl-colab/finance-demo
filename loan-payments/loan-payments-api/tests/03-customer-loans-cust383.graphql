@@ -1,0 +1,15 @@
+query {
+  CustomerLoanSummaries {
+    loan_id
+    customer_id
+    loan_purpose
+    applied_payment_count
+    returned_payment_count
+    total_paid_cents
+    last_payment_date
+    payments {
+      payment_id
+      payment_status
+    }
+  }
+}
