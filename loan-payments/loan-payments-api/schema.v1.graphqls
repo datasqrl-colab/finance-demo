@@ -134,7 +134,7 @@ type Query {
     offset: Int = 0
   ): [LoanPaymentSummary!]
 
-  "Payments dropped at the personal-loan join, counted by source loan type (operations)."
+  "Payments dropped at the personal-loan join, counted by source loan type (admin only)."
   DQ_Dropped_Payment(
     "Optional filter by source loan type."
     loan_type: String
@@ -144,7 +144,7 @@ type Query {
     offset: Int = 0
   ): [DQ_Dropped_Payment!]
 
-  "Monthly ingestion counts per consumer-lending source stream (operations)."
+  "Monthly ingestion counts per consumer-lending source stream (admin only)."
   OB_SourceIngestionStats(
     "Optional filter by source stream name."
     source_name: String

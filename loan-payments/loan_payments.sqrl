@@ -103,16 +103,23 @@ LoanPaymentSummary.payments :=
 -- DATA QUALITY TABLES
 -- ============================================================
 
+_DQ_Dropped_Payment := SELECT p.loan_type, COUNT(*) AS dropped_payment_count
+                       FROM _LatestLoanPayment p
+                       LEFT JOIN _LatestPersonalLoan l ON p.loan_id = l.loan_id
+                       WHERE l.loan_id IS NULL
+                       GROUP BY p.loan_type;
+
 /** DQ: Payments with no matching personal-loan record, counted by the source loan_type.
+    Admin-only: the token must carry the is_admin claim, otherwise the result is empty.
     AUTO rows are expected because auto loans are out of scope. A PERSONAL row, or a growing
     count, means the personal-loan feed is missing or late and those payments were dropped. */
-/*+query_by_any(loan_type) */
-DQ_Dropped_Payment := SELECT p.loan_type, COUNT(*) AS dropped_payment_count
-                      FROM _LatestLoanPayment p
-                      LEFT JOIN _LatestPersonalLoan l ON p.loan_id = l.loan_id
-                      WHERE l.loan_id IS NULL
-                      GROUP BY p.loan_type
-                      ORDER BY p.loan_type ASC;
+DQ_Dropped_Payment(loan_type STRING,
+                   is_admin BOOLEAN METADATA FROM 'auth.is_admin') :=
+  SELECT loan_type, dropped_payment_count
+  FROM _DQ_Dropped_Payment
+  WHERE :is_admin = TRUE
+    AND (:loan_type IS NULL OR loan_type = :loan_type)
+  ORDER BY loan_type ASC;
 
 -- ============================================================
 -- OBSERVABILITY
@@ -122,15 +129,22 @@ _SourceRecords := SELECT 'Personal_Loan' AS source_name, ingested_at FROM cons_l
                   UNION ALL
                   SELECT 'Loan_Payment' AS source_name, ingested_at FROM cons_loans.Loan_Payment;
 
+_OB_SourceIngestionStats := SELECT source_name,
+                                   DATE_FORMAT(ingested_at, 'yyyy-MM') AS ingestion_month,
+                                   COUNT(*) AS record_count
+                            FROM _SourceRecords
+                            GROUP BY source_name, DATE_FORMAT(ingested_at, 'yyyy-MM');
+
 /** OB: Number of records received from each consumer-lending source stream per month.
+    Admin-only: the token must carry the is_admin claim, otherwise the result is empty.
     A missing month or a lower count can indicate a stalled source feed. */
-/*+query_by_any(source_name) */
-OB_SourceIngestionStats := SELECT source_name,
-                                  DATE_FORMAT(ingested_at, 'yyyy-MM') AS ingestion_month,
-                                  COUNT(*) AS record_count
-                           FROM _SourceRecords
-                           GROUP BY source_name, DATE_FORMAT(ingested_at, 'yyyy-MM')
-                           ORDER BY ingestion_month ASC, source_name ASC;
+OB_SourceIngestionStats(source_name STRING,
+                        is_admin BOOLEAN METADATA FROM 'auth.is_admin') :=
+  SELECT source_name, ingestion_month, record_count
+  FROM _OB_SourceIngestionStats
+  WHERE :is_admin = TRUE
+    AND (:source_name IS NULL OR source_name = :source_name)
+  ORDER BY ingestion_month ASC, source_name ASC;
 
 -- ============================================================
 -- TEST QUERIES
@@ -152,9 +166,11 @@ LoanPaymentSummaryPL035_Test := SELECT loan_id, customer_id, loan_purpose, appli
                                        interest_paid_cents, late_fees_cents, last_payment_date
                                 FROM LoanPaymentSummary WHERE loan_id = 'PL-035';
 
+-- The DQ/OB endpoints require an admin token, so the table tests read the underlying
+-- aggregations directly to verify their values without an auth context.
 /*+test */
-DQDroppedPayment_Test := SELECT loan_type, dropped_payment_count FROM DQ_Dropped_Payment ORDER BY loan_type ASC;
+DQDroppedPayment_Test := SELECT loan_type, dropped_payment_count FROM _DQ_Dropped_Payment ORDER BY loan_type ASC;
 
 /*+test */
 OBSourceIngestionStats_Test := SELECT source_name, ingestion_month, record_count
-                               FROM OB_SourceIngestionStats ORDER BY ingestion_month ASC, source_name ASC;
+                               FROM _OB_SourceIngestionStats ORDER BY ingestion_month ASC, source_name ASC;

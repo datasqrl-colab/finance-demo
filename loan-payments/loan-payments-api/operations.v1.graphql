@@ -63,7 +63,7 @@ query GetCustomerLoans($limit: Int = 50) @api(mcp: TOOL, rest: GET, uri: "/custo
 }
 
 # Retrieve the payments dropped at the personal-loan join, counted by source loan type.
-# An operations endpoint for monitoring, not customer data.
+# Admin-only: requires a token with the is_admin claim; other tokens get no rows.
 query GetDroppedPayments($loan_type: String) @api(mcp: TOOL, rest: GET, uri: "/data-quality/dropped-payments") {
   DQ_Dropped_Payment(loan_type: $loan_type) {
     loan_type
@@ -72,7 +72,7 @@ query GetDroppedPayments($loan_type: String) @api(mcp: TOOL, rest: GET, uri: "/d
 }
 
 # Retrieve the monthly ingestion counts per consumer-lending source stream.
-# An operations endpoint for monitoring, not customer data.
+# Admin-only: requires a token with the is_admin claim; other tokens get no rows.
 query GetSourceIngestionStats($source_name: String) @api(mcp: TOOL, rest: GET, uri: "/observability/source-ingestion") {
   OB_SourceIngestionStats(source_name: $source_name) {
     source_name

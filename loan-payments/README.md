@@ -62,8 +62,8 @@ without a token (HTTP 401). All customer queries filter on `customer_id = auth.c
 | `LoanPaymentSummaryByLoanId` | `loan_id` | `GET /v1/rest/loans/{loan_id}/payment-summary` |
 | `LoanPaymentsByLoanId` | `loan_id`, `limit`, `offset` | `GET /v1/rest/loans/{loan_id}/payments` |
 | `CustomerLoanSummaries` | `limit`, `offset` | `GET /v1/rest/customer/loans` |
-| `DQ_Dropped_Payment` (operations) | `loan_type` | `GET /v1/rest/data-quality/dropped-payments` |
-| `OB_SourceIngestionStats` (operations) | `source_name` | `GET /v1/rest/observability/source-ingestion` |
+| `DQ_Dropped_Payment` (operations, admin only) | `loan_type` | `GET /v1/rest/data-quality/dropped-payments` |
+| `OB_SourceIngestionStats` (operations, admin only) | `source_name` | `GET /v1/rest/observability/source-ingestion` |
 
 `CustomerLoanSummaries` embeds the loan's payments as the `payments` relationship. The API exposes
 only the fields the customer needs: `customer_id` and `loan_purpose` from the loan record, and the
@@ -71,6 +71,9 @@ payment fields. Loan number, credit score, DTI and account ids stay out of the A
 
 MCP tools are generated for the same queries (`GetLoanPaymentSummary`, `GetLoanPayments`,
 `GetCustomerLoans`, `GetDroppedPayments`, `GetSourceIngestionStats`).
+
+The data-quality and observability queries are **admin only**. They read the `is_admin` claim
+from the token and return no rows unless it is `true`; a customer token cannot see them.
 
 ### Test tokens
 
@@ -82,6 +85,14 @@ jwt encode --secret 'loan-payments-test-secret-signing-string' --alg HS256 \
   '{"iss":"loan-payments-issuer","aud":["loan-payments-api"],"exp":9999999999,"customer_id":"CUST-439"}'
 ```
 
+For the admin-only data-quality and observability queries, mint a token that also carries
+`"is_admin":true`:
+
+```bash
+jwt encode --secret 'loan-payments-test-secret-signing-string' --alg HS256 \
+  '{"iss":"loan-payments-issuer","aud":["loan-payments-api"],"exp":9999999999,"customer_id":"CUST-001","is_admin":true}'
+```
+
 The `prod` config reads the issuer, audience and JWKS URI from `AUTH_ISSUER`, `AUTH_AUDIENCE` and
 `AUTH_JWKS_URI`.
 
@@ -90,8 +101,10 @@ The `prod` config reads the issuer, audience and JWKS URI from `AUTH_ISSUER`, `A
 - **`DQ_Dropped_Payment`** — payments dropped by the personal-loan inner join, counted by source
   `loan_type`. `AUTO` rows are expected (auto loans are out of scope). A `PERSONAL` row, or a rising
   count, means the personal-loan feed is missing or late and real personal payments were dropped.
+  Admin only: the query reads the `is_admin` claim and is empty for a non-admin token.
 - **`OB_SourceIngestionStats`** — monthly record counts per consumer-lending source stream. A
   missing month or a lower count can indicate a stalled source feed.
+  Admin only: the query reads the `is_admin` claim and is empty for a non-admin token.
 
 The catalog's own column guarantees (NOT NULL keys, amount types, the payment-status enum) are
 treated as upstream coverage and are not re-checked here. `LoanPayments` and `LoanPaymentSummary`
@@ -176,10 +189,12 @@ A local `run` exposes:
   (`use-inferred-schema: false`) using per-test JWT tokens in the `.properties` files.
 - `loan-payments-table-test-package.json` runs the `/*+test*/` table tests against the inferred
   schema. It carries the checks that must not be in the customer API: the total `LoanPayments` row
-  count and the absence of auto-loan rows.
+  count, the absence of auto-loan rows, and the data-quality and observability values. The latter
+  two read the hidden aggregation tables directly, because the public queries are admin only and a
+  table test has no auth context.
 
 The API tests cover the acceptance criteria: the PL-115 summary and its 12 payments for CUST-439,
 the two CUST-383 loans (including the zero-payment summary) with nested payments, a cross-customer
-denial, a request without a token, late fees for PL-035, the LPMT-002 payment, and the data quality
-and observability tables. The CDC deduplication itself has no snapshot because the catalog test data
+denial, a request without a token, late fees for PL-035, the LPMT-002 payment, the admin-only data
+quality and observability tables (with an admin token), and their denial for a non-admin token. The CDC deduplication itself has no snapshot because the catalog test data
 contains no repeated keys.
