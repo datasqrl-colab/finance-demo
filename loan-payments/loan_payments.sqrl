@@ -1,0 +1,176 @@
+-- Loan Payments: customer self-service view of the payments on their personal loans.
+-- Reads the personal-loan and loan-payment CDC streams from the shared consumer-lending
+-- data catalog (read-only), deduplicates them, joins payments to personal loans, and
+-- aggregates a per-loan payment summary. Every API lookup is restricted to the caller's
+-- JWT customer_id claim.
+
+IMPORT data_catalog.lending.cards_consumer_credit.consumer_loans-{{environment}} AS cons_loans;
+
+-- Deduplicate the CDC streams (FR-2, FR-3): keep the latest version per key.
+
+_LatestPersonalLoan := DISTINCT cons_loans.Personal_Loan ON loan_id ORDER BY source_updated_at DESC;
+_LatestLoanPayment := DISTINCT cons_loans.Loan_Payment ON payment_id ORDER BY source_updated_at DESC;
+
+-- Payments of personal loans (FR-4, FR-5). The inner join drops payments whose loan_id has
+-- no personal-loan record: auto-loan payments by design, and personal payments if the loan
+-- feed is missing or late. The gap is reported by DQ_Dropped_Payment below.
+/*+no_query */
+LoanPayments := SELECT p.payment_id,
+                       p.loan_id,
+                       l.primary_borrower_customer_id AS customer_id,
+                       l.loan_purpose,
+                       p.loan_type,
+                       p.payment_amount_cents,
+                       p.principal_cents,
+                       p.interest_cents,
+                       p.late_fee_cents,
+                       p.other_fees_cents,
+                       p.payment_type,
+                       p.payment_status,
+                       p.due_date,
+                       p.received_date,
+                       p.applied_date,
+                       p.payment_method,
+                       p.principal_balance_after_cents,
+                       p.days_past_due_at_payment,
+                       p.confirmation_number,
+                       p.return_reason_code
+                FROM _LatestLoanPayment p
+                JOIN _LatestPersonalLoan l ON p.loan_id = l.loan_id;
+
+-- Per-loan payment aggregate over all deduplicated payments. Built from the payment stream
+-- (not from LoanPayments) so that a loan with no payments is not lost in the summary.
+_LoanPaymentAgg := SELECT loan_id,
+                          SUM(CASE WHEN payment_status = 'APPLIED' THEN 1 ELSE 0 END) AS applied_payment_count,
+                          SUM(CASE WHEN payment_status = 'RETURNED' THEN 1 ELSE 0 END) AS returned_payment_count,
+                          SUM(CASE WHEN payment_status = 'APPLIED' THEN payment_amount_cents ELSE 0 END) AS total_paid_cents,
+                          SUM(CASE WHEN payment_status = 'APPLIED' THEN principal_cents ELSE 0 END) AS principal_paid_cents,
+                          SUM(CASE WHEN payment_status = 'APPLIED' THEN interest_cents ELSE 0 END) AS interest_paid_cents,
+                          SUM(CASE WHEN payment_status = 'APPLIED' THEN late_fee_cents ELSE 0 END) AS late_fees_cents,
+                          MAX(CASE WHEN payment_status = 'APPLIED' THEN applied_date END) AS last_payment_date
+                   FROM _LatestLoanPayment
+                   GROUP BY loan_id;
+
+-- One row per personal loan of every status (FR-6, FR-7). A loan with no applied payments
+-- shows zero counts and sums and a null last_payment_date.
+/*+no_query */
+LoanPaymentSummary := SELECT l.loan_id,
+                             l.primary_borrower_customer_id AS customer_id,
+                             l.loan_purpose,
+                             COALESCE(a.applied_payment_count, 0) AS applied_payment_count,
+                             COALESCE(a.returned_payment_count, 0) AS returned_payment_count,
+                             COALESCE(a.total_paid_cents, 0) AS total_paid_cents,
+                             COALESCE(a.principal_paid_cents, 0) AS principal_paid_cents,
+                             COALESCE(a.interest_paid_cents, 0) AS interest_paid_cents,
+                             COALESCE(a.late_fees_cents, 0) AS late_fees_cents,
+                             a.last_payment_date
+                      FROM _LatestPersonalLoan l
+                      LEFT JOIN _LoanPaymentAgg a ON l.loan_id = a.loan_id;
+
+-- ============================================================
+-- API ACCESS (JWT-restricted)
+-- ============================================================
+
+/** The payment summary of one personal loan. Empty when the loan does not exist or is not
+    owned by the customer in the token. */
+LoanPaymentSummaryByLoanId(loan_id STRING NOT NULL,
+                           customer_id STRING NOT NULL METADATA FROM 'auth.customer_id') :=
+  SELECT * FROM LoanPaymentSummary
+  WHERE loan_id = :loan_id AND customer_id = :customer_id
+  LIMIT 1;
+
+/** The payments of one personal loan, newest first. Empty when the loan is not owned by the
+    customer in the token. */
+LoanPaymentsByLoanId(loan_id STRING NOT NULL,
+                     customer_id STRING NOT NULL METADATA FROM 'auth.customer_id') :=
+  SELECT * FROM LoanPayments
+  WHERE loan_id = :loan_id AND customer_id = :customer_id
+  ORDER BY received_date DESC, payment_id ASC;
+
+/** All personal loans of the customer in the token, each with its payment summary. */
+CustomerLoanSummaries(customer_id STRING NOT NULL METADATA FROM 'auth.customer_id') :=
+  SELECT * FROM LoanPaymentSummary
+  WHERE customer_id = :customer_id
+  ORDER BY loan_id ASC;
+
+/** The payments of a summarized loan, newest first. */
+LoanPaymentSummary.payments :=
+  SELECT * FROM LoanPayments p
+  WHERE p.loan_id = this.loan_id AND p.customer_id = this.customer_id
+  ORDER BY p.received_date DESC, p.payment_id ASC;
+
+-- ============================================================
+-- DATA QUALITY TABLES
+-- ============================================================
+
+_DQ_Dropped_Payment := SELECT p.loan_type, COUNT(*) AS dropped_payment_count
+                       FROM _LatestLoanPayment p
+                       LEFT JOIN _LatestPersonalLoan l ON p.loan_id = l.loan_id
+                       WHERE l.loan_id IS NULL
+                       GROUP BY p.loan_type;
+
+/** DQ: Payments with no matching personal-loan record, counted by the source loan_type.
+    Admin-only: the token must carry the is_admin claim, otherwise the result is empty.
+    AUTO rows are expected because auto loans are out of scope. A PERSONAL row, or a growing
+    count, means the personal-loan feed is missing or late and those payments were dropped. */
+DQ_Dropped_Payment(loan_type STRING,
+                   is_admin BOOLEAN METADATA FROM 'auth.is_admin') :=
+  SELECT loan_type, dropped_payment_count
+  FROM _DQ_Dropped_Payment
+  WHERE :is_admin = TRUE
+    AND (:loan_type IS NULL OR loan_type = :loan_type)
+  ORDER BY loan_type ASC;
+
+-- ============================================================
+-- OBSERVABILITY
+-- ============================================================
+
+_SourceRecords := SELECT 'Personal_Loan' AS source_name, ingested_at FROM cons_loans.Personal_Loan
+                  UNION ALL
+                  SELECT 'Loan_Payment' AS source_name, ingested_at FROM cons_loans.Loan_Payment;
+
+_OB_SourceIngestionStats := SELECT source_name,
+                                   DATE_FORMAT(ingested_at, 'yyyy-MM') AS ingestion_month,
+                                   COUNT(*) AS record_count
+                            FROM _SourceRecords
+                            GROUP BY source_name, DATE_FORMAT(ingested_at, 'yyyy-MM');
+
+/** OB: Number of records received from each consumer-lending source stream per month.
+    Admin-only: the token must carry the is_admin claim, otherwise the result is empty.
+    A missing month or a lower count can indicate a stalled source feed. */
+OB_SourceIngestionStats(source_name STRING,
+                        is_admin BOOLEAN METADATA FROM 'auth.is_admin') :=
+  SELECT source_name, ingestion_month, record_count
+  FROM _OB_SourceIngestionStats
+  WHERE :is_admin = TRUE
+    AND (:source_name IS NULL OR source_name = :source_name)
+  ORDER BY ingestion_month ASC, source_name ASC;
+
+-- ============================================================
+-- TEST QUERIES
+-- ============================================================
+
+/*+test */
+LoanPaymentsCount_Test := SELECT COUNT(*) AS payment_count FROM LoanPayments;
+
+/*+test(no_rows) */
+AutoLoanPayments_Test := SELECT * FROM LoanPayments WHERE loan_id LIKE 'AL-%';
+
+/*+test */
+LoanPaymentsPL001_Test := SELECT payment_id, loan_id, customer_id, loan_purpose, loan_type, payment_status
+                          FROM LoanPayments WHERE loan_id = 'PL-001' ORDER BY payment_id ASC;
+
+/*+test */
+LoanPaymentSummaryPL035_Test := SELECT loan_id, customer_id, loan_purpose, applied_payment_count,
+                                       returned_payment_count, total_paid_cents, principal_paid_cents,
+                                       interest_paid_cents, late_fees_cents, last_payment_date
+                                FROM LoanPaymentSummary WHERE loan_id = 'PL-035';
+
+-- The DQ/OB endpoints require an admin token, so the table tests read the underlying
+-- aggregations directly to verify their values without an auth context.
+/*+test */
+DQDroppedPayment_Test := SELECT loan_type, dropped_payment_count FROM _DQ_Dropped_Payment ORDER BY loan_type ASC;
+
+/*+test */
+OBSourceIngestionStats_Test := SELECT source_name, ingestion_month, record_count
+                               FROM _OB_SourceIngestionStats ORDER BY ingestion_month ASC, source_name ASC;

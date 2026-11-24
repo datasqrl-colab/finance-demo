@@ -1,0 +1,10 @@
+query {
+  LoanPaymentsByLoanId(loan_id: "PL-001") {
+    payment_id
+    loan_id
+    customer_id
+    loan_purpose
+    payment_amount_cents
+    payment_status
+  }
+}

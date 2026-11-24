@@ -5,3 +5,6 @@ sqrl_iceberg_data/
 .idea/
 *.iml
 .claude/
+
+# DataSQRL Code Agent run files (progress trail, repo inventory)
+.datasqrl/

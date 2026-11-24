@@ -1,0 +1,82 @@
+# Retrieve the payment summary of one personal loan. The server restricts the result to the
+# loan when it belongs to the customer in the JWT; otherwise it returns no data.
+query GetLoanPaymentSummary($loan_id: String!) @api(mcp: TOOL, rest: GET, uri: "/loans/{loan_id}/payment-summary") {
+  LoanPaymentSummaryByLoanId(loan_id: $loan_id) {
+    loan_id
+    customer_id
+    loan_purpose
+    applied_payment_count
+    returned_payment_count
+    total_paid_cents
+    principal_paid_cents
+    interest_paid_cents
+    late_fees_cents
+    last_payment_date
+  }
+}
+
+# Retrieve the payments of one personal loan, newest first. The server restricts the result to
+# loans of the customer in the JWT.
+query GetLoanPayments($loan_id: String!, $limit: Int = 50) @api(mcp: TOOL, rest: GET, uri: "/loans/{loan_id}/payments") {
+  LoanPaymentsByLoanId(loan_id: $loan_id, limit: $limit) {
+    payment_id
+    loan_id
+    customer_id
+    loan_purpose
+    payment_amount_cents
+    principal_cents
+    interest_cents
+    late_fee_cents
+    other_fees_cents
+    payment_type
+    payment_status
+    due_date
+    received_date
+    applied_date
+    payment_method
+    confirmation_number
+    return_reason_code
+  }
+}
+
+# Retrieve every personal loan of the customer in the JWT with its payment summary and the
+# payments of each loan.
+query GetCustomerLoans($limit: Int = 50) @api(mcp: TOOL, rest: GET, uri: "/customer/loans") {
+  CustomerLoanSummaries(limit: $limit) {
+    loan_id
+    customer_id
+    loan_purpose
+    applied_payment_count
+    returned_payment_count
+    total_paid_cents
+    principal_paid_cents
+    interest_paid_cents
+    late_fees_cents
+    last_payment_date
+    payments {
+      payment_id
+      payment_amount_cents
+      payment_status
+      received_date
+    }
+  }
+}
+
+# Retrieve the payments dropped at the personal-loan join, counted by source loan type.
+# Admin-only: requires a token with the is_admin claim; other tokens get no rows.
+query GetDroppedPayments($loan_type: String) @api(mcp: TOOL, rest: GET, uri: "/data-quality/dropped-payments") {
+  DQ_Dropped_Payment(loan_type: $loan_type) {
+    loan_type
+    dropped_payment_count
+  }
+}
+
+# Retrieve the monthly ingestion counts per consumer-lending source stream.
+# Admin-only: requires a token with the is_admin claim; other tokens get no rows.
+query GetSourceIngestionStats($source_name: String) @api(mcp: TOOL, rest: GET, uri: "/observability/source-ingestion") {
+  OB_SourceIngestionStats(source_name: $source_name) {
+    source_name
+    ingestion_month
+    record_count
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "data" : {
+    "LoanPaymentSummaryByLoanId" : {
+      "loan_id" : "PL-035",
+      "customer_id" : "CUST-061",
+      "loan_purpose" : "MEDICAL",
+      "applied_payment_count" : 10,
+      "late_fees_cents" : 7500
+    }
+  }
+}

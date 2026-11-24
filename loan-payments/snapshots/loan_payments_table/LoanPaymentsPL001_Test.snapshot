@@ -1,0 +1,19 @@
+{
+  "data" : {
+    "LoanPaymentsPL001_Test" : [ {
+      "payment_id" : "LPMT-001",
+      "loan_id" : "PL-001",
+      "customer_id" : "CUST-001",
+      "loan_purpose" : "HOME_IMPROVEMENT",
+      "loan_type" : "PERSONAL",
+      "payment_status" : "APPLIED"
+    }, {
+      "payment_id" : "LPMT-002",
+      "loan_id" : "PL-001",
+      "customer_id" : "CUST-001",
+      "loan_purpose" : "HOME_IMPROVEMENT",
+      "loan_type" : "PERSONAL",
+      "payment_status" : "APPLIED"
+    } ]
+  }
+}

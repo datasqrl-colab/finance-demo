@@ -1,0 +1,85 @@
+{
+  "data" : {
+    "OBSourceIngestionStats_Test" : [ {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2022-09",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2022-10",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2023-03",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2023-04",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2023-05",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2023-06",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2023-09",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2023-10",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2023-11",
+      "record_count" : 1
+    }, {
+      "source_name" : "Loan_Payment",
+      "ingestion_month" : "2023-12",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2023-12",
+      "record_count" : 1
+    }, {
+      "source_name" : "Loan_Payment",
+      "ingestion_month" : "2024-01",
+      "record_count" : 6
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2024-01",
+      "record_count" : 4
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2024-04",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2024-07",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2024-10",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2024-11",
+      "record_count" : 1
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2025-01",
+      "record_count" : 3
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2025-02",
+      "record_count" : 3
+    }, {
+      "source_name" : "Personal_Loan",
+      "ingestion_month" : "2025-03",
+      "record_count" : 2
+    } ]
+  }
+}

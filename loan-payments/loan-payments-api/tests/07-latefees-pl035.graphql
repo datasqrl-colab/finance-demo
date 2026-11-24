@@ -1,0 +1,9 @@
+query {
+  LoanPaymentSummaryByLoanId(loan_id: "PL-035") {
+    loan_id
+    customer_id
+    loan_purpose
+    applied_payment_count
+    late_fees_cents
+  }
+}

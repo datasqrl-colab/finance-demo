@@ -1,0 +1,11 @@
+query {
+  DQ_Dropped_Payment {
+    loan_type
+    dropped_payment_count
+  }
+  OB_SourceIngestionStats {
+    source_name
+    ingestion_month
+    record_count
+  }
+}

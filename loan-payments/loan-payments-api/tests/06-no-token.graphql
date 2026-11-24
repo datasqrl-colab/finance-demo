@@ -1,0 +1,6 @@
+query {
+  LoanPaymentSummaryByLoanId(loan_id: "PL-115") {
+    loan_id
+    customer_id
+  }
+}
