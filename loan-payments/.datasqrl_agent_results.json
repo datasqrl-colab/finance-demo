@@ -2,6 +2,57 @@
   "runs": [
     {
       "success": true,
+      "mode": "patch",
+      "harness": "pi",
+      "provider": "together",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "scenario": "pipeline",
+      "domains": [
+        "analytics",
+        "finance"
+      ],
+      "refinements": 0,
+      "issue_score": null,
+      "code_check_status": null,
+      "llm_judge_status": null,
+      "issue_count": {
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "issues": [],
+      "test_commands": [
+        "bash run-tests.sh"
+      ],
+      "test_script": "run-tests.sh",
+      "last_test_scope": [
+        "loan_payments",
+        "loan_payments_table_test"
+      ],
+      "compile_commands": [],
+      "verified_envs": {},
+      "build_dirs": {},
+      "budget": {
+        "cost_usd": 0.058599,
+        "time_s": 359.0,
+        "cost_limit": null,
+        "time_limit": null,
+        "agent_calls": 1,
+        "llm_calls": 0,
+        "cost_by_source": {
+          "agent:pi": 0.058599
+        },
+        "calls_by_source": {
+          "agent:pi": 1
+        }
+      },
+      "request_uuid": "01f88e63-d15b-46f5-87f2-475a9f39be17",
+      "finished_at": "2026-11-24T15:49:51.576680+00:00"
+    },
+    {
+      "success": true,
       "mode": "implementation",
       "harness": "pi",
       "provider": "together",
